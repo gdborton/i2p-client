@@ -41,6 +41,8 @@ jobs:
           sudo ls -la /var/lib/i2p/
           sudo cat /var/lib/i2p/i2p-config/router.config
           echo "sam.enabled=true" | sudo tee -a /var/lib/i2p/i2p-config/router.config
+          echo "Catting SAMBridge clients.config"
+          sudo cat /var/lib/i2p/i2p-config/clients.config.d/01-net.i2p.sam.SAMBridge-clients.config
           sudo ls -latr /var/lib/i2p/i2p-config/
           sudo ls -la /var/lib/i2p/i2p-config/**/*
           echo "Current clients.config"
