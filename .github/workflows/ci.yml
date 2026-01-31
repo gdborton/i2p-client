@@ -47,7 +47,18 @@ jobs:
 
       - name: Wait for I2P to be ready
         run: |
-          timeout 300 bash -c 'until nc -z localhost 7656; do sleep 5; done'
+          if timeout 300 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
+            echo "SAM port ready"
+          else
+            echo "Timeout waiting for SAM port 7656"
+            echo "I2P service status:"
+            sudo systemctl status i2p --no-pager || true
+            echo "Recent I2P logs:"
+            sudo journalctl -u i2p --no-pager -n 50 || true
+            echo "Log files:"
+            sudo find /var/lib/i2p -name "*.log" -exec echo "=== {} ===" \; -exec sudo cat {} \; 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Run tests
         run: npm test
