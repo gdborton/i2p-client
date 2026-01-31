@@ -192,6 +192,7 @@ abstract class BaseSamSocket extends EventEmitter {
         this.socket.destroy();
       }
     } else {
+      console.log("raw message", message);
       console.error("UNHANDLED SAM MESSAGE:", msg);
     }
   }
