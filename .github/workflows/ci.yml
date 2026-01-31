@@ -42,6 +42,7 @@ jobs:
           sudo cat /var/lib/i2p/i2p-config/router.config
           echo "sam.enabled=true" | sudo tee -a /var/lib/i2p/i2p-config/router.config
           sudo ls -latr /var/lib/i2p/i2p-config/
+          sudo ls -la /var/lib/i2p/i2p-config/clients.config.d/**/*
           echo "Current clients.config"
           sudo cat /var/lib/i2p/i2p-config/clients.config
           echo "Adding SAM to clients.config"
