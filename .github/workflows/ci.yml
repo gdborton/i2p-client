@@ -37,9 +37,11 @@ jobs:
           sleep 3;
           echo "Home directory: $HOME"
           ls -latr ~/
-          sudo find /var/lib/i2p -name "*config*" -type f
+          sudo find /etc/i2p -name "*config*" -type f 2>/dev/null || echo "No config in /etc/i2p"
+          sudo find /var/lib/i2p -name "*config*" -type f 2>/dev/null || echo "No config in /var/lib/i2p"
+          sudo ls -la /etc/i2p/ 2>/dev/null || echo "/etc/i2p not found"
           sudo ls -la /var/lib/i2p/
-          sudo sed -i 's/sam.enabled=.*/sam.enabled=true/' /var/lib/i2p/i2p-config/router.config
+          sudo sed -i 's/sam.enabled=.*/sam.enabled=true/' /etc/i2p/router.config
 
       - name: Start I2P
         run: sudo systemctl start i2p
