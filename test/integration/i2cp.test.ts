@@ -12,6 +12,8 @@ describe(
     const i2cpPort = 7654;
     let session1: I2CPSession;
     let session2: I2CPSession;
+    let port1: ReturnType<typeof session1.connect>;
+    let port2: ReturnType<typeof session2.connect>;
 
     beforeAll(async () => {
       // ensure that i2cp is listening
@@ -39,6 +41,8 @@ describe(
       });
       await session1Ready;
       await session2Ready;
+      port1 = session1.connect(13);
+      port2 = session2.connect(14);
     });
 
     describe("Streaming", () => {
@@ -72,8 +76,6 @@ describe(
         const message = Buffer.from("Hello over RepliableDatagram!");
         const reply = Buffer.from("Reply!");
 
-        const port1 = session1.connect(13);
-        const port2 = session2.connect(14);
         let replyRecieved = new Promise<Buffer>((resolve) => {
           port1.on(
             "repliableMessage",
