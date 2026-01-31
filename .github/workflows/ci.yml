@@ -34,6 +34,7 @@ jobs:
 
       - name: Configure I2P to enable SAM
         run: |
+          sleep 3;
           echo "Home directory: $HOME"
           ls -latr ~/
           sudo find /var/lib/i2p -name "*config*" -type f
