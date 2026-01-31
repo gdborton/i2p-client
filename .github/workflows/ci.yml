@@ -34,7 +34,10 @@ jobs:
 
       - name: Configure I2P to enable SAM
         run: |
-          sudo sed -i 's/sam.enabled=.*/sam.enabled=true/' /etc/i2p/router.config
+          echo "Home directory: $HOME"
+          ls -latr ~/
+          find /var/lib/i2p -name "*config*" -type f
+          sudo sed -i 's/sam.enabled=.*/sam.enabled=true/' /var/lib/i2p/router.config
 
       - name: Start I2P
         run: sudo systemctl start i2p
