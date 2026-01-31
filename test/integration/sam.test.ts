@@ -49,21 +49,15 @@ describe(
     const samHost = "127.0.0.1";
     const samTcpPort = 7656;
     const samUdpPort = 7655;
-    const i2pHttpProxyPort = 4444;
 
     beforeAll(async () => {
       // Check required ports
       const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
       const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-      const httpOpen = await isTcpPortOpen(i2pHttpProxyPort, samHost);
       if (!tcpOpen)
         throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
       if (!udpOpen)
         throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      if (!httpOpen)
-        throw new Error(
-          `I2P HTTP proxy port ${i2pHttpProxyPort} not open on ${samHost}`,
-        );
     });
 
     describe("SAM integration: repliable datagrams", () => {
