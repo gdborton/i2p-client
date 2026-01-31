@@ -40,7 +40,7 @@ jobs:
           sudo find /var/lib/i2p -name "*config*" -type f
           sudo ls -la /var/lib/i2p/
           sudo cat /var/lib/i2p/i2p-config/router.config
-          sudo sed -i 's/sam.enabled=.*/sam.enabled=true/' /var/lib/i2p/i2p-config/router.config
+          echo "sam.enabled=true" | sudo tee -a /var/lib/i2p/i2p-config/router.config
 
       - name: Start I2P
         run: sudo systemctl start i2p
