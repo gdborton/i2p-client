@@ -799,7 +799,6 @@ export class SAM extends EventEmitter {
               publicKey,
               privateKey,
             );
-
             cleanup();
             resolve({
               address,

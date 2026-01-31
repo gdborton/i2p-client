@@ -44,6 +44,7 @@ describe(
   "SAM",
   {
     timeout: 40_000,
+    retry: 3, // ideally we don't need this, I don't seem to need it on local, but GH is sporadically failing
   },
   () => {
     const samHost = "127.0.0.1";
