@@ -41,6 +41,10 @@ jobs:
           sudo ls -la /var/lib/i2p/
           sudo cat /var/lib/i2p/i2p-config/router.config
           echo "sam.enabled=true" | sudo tee -a /var/lib/i2p/i2p-config/router.config
+          echo "Current clients.config"
+          sudo cat /var/lib/i2p/i2p-config/clients.config
+          echo "Adding SAM to clients.config"
+          sudo bash -c 'echo -e "clientApp.0.main=net.i2p.sam.SAMBridge\nclientApp.0.name=SAM\nclientApp.0.args=127.0.0.1 7656 127.0.0.1 7655\nclientApp.0.delay=0" >> /var/lib/i2p/i2p-config/clients.config'
 
       - name: Start I2P
         run: sudo systemctl start i2p
