@@ -40,7 +40,7 @@ jobs:
           sudo sed -i 's/startOnLoad=false/startOnLoad=true/' /usr/share/i2p/clients.config
           echo "New clients.config:"
           sudo cat /usr/share/i2p/clients.config
-          sudo echo "clientApp.1.delay=0" >> /usr/share/i2p/clients.config
+          sudo sh -c 'echo "clientApp.1.delay=0" >> /usr/share/i2p/clients.config'
 
       - name: Start I2P
         run: sudo systemctl start i2p
