@@ -43,148 +43,126 @@ async function isUdpPortOpen(port: number, host = "127.0.0.1") {
 describe(
   "SAM",
   {
-    timeout: 20_000,
+    timeout: 40_000,
+    retry: 3, // ideally we don't need this, I don't seem to need it on local, but GH is sporadically failing
   },
   () => {
+    const samHost = "127.0.0.1";
+    const samTcpPort = 7656;
+    const samUdpPort = 7655;
+
+    beforeAll(async () => {
+      // Check required ports
+      const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
+      const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
+      if (!tcpOpen)
+        throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
+      if (!udpOpen)
+        throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
+    });
+
     describe("SAM integration: repliable datagrams", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-      const i2pHttpProxyPort = 4444;
+      it("should establish two destinations and exchange repliable datagrams", async () => {
+        // Generate destinations
+        const dest1 = await SAM.generateDestination({
+          host: samHost,
+          port: samTcpPort,
+        });
+        const dest2 = await SAM.generateDestination({
+          host: samHost,
+          port: samTcpPort,
+        });
 
-      beforeAll(async () => {
-        // Check required ports
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        const httpOpen = await isTcpPortOpen(i2pHttpProxyPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-        if (!httpOpen)
-          throw new Error(
-            `I2P HTTP proxy port ${i2pHttpProxyPort} not open on ${samHost}`,
-          );
-      });
+        // Start primary sessions for each destination
+        const { PrimarySession } = await import("../../src/sam");
+        const primary1 = new PrimarySession({
+          host: samHost,
+          tcpPort: samTcpPort,
+          udpPort: samUdpPort, // use standard default UDP port
+          publicKey: dest1.public,
+          privateKey: dest1.private,
+        });
+        const primary2 = new PrimarySession({
+          host: samHost,
+          tcpPort: samTcpPort,
+          udpPort: samUdpPort, // use standard default UDP port
+          publicKey: dest2.public,
+          privateKey: dest2.private,
+        });
 
-      it(
-        "should establish two destinations and exchange repliable datagrams",
-        async () => {
-          // Generate destinations
-          const dest1 = await SAM.generateDestination({
-            host: samHost,
-            port: samTcpPort,
-          });
-          const dest2 = await SAM.generateDestination({
-            host: samHost,
-            port: samTcpPort,
-          });
+        // Create repliable datagram sessions from primary sessions
+        const dgram1 = await primary1.getOrCreateSubsession(
+          "dgram1",
+          "DATAGRAM",
+          samUdpPort,
+        );
+        const dgram2 = await primary2.getOrCreateSubsession(
+          "dgram2",
+          "DATAGRAM",
+          samUdpPort,
+        );
 
-          // Start primary sessions for each destination
-          const { PrimarySession } = await import("../../src/sam");
-          const primary1 = new PrimarySession({
-            host: samHost,
-            tcpPort: samTcpPort,
-            udpPort: samUdpPort, // use standard default UDP port
-            publicKey: dest1.public,
-            privateKey: dest1.private,
-          });
-          const primary2 = new PrimarySession({
-            host: samHost,
-            tcpPort: samTcpPort,
-            udpPort: samUdpPort, // use standard default UDP port
-            publicKey: dest2.public,
-            privateKey: dest2.private,
-          });
-
-          // Create repliable datagram sessions from primary sessions
-          const dgram1 = await primary1.getOrCreateSubsession(
-            "dgram1",
-            "DATAGRAM",
-            samUdpPort,
-          );
-          const dgram2 = await primary2.getOrCreateSubsession(
-            "dgram2",
-            "DATAGRAM",
-            samUdpPort,
-          );
-
-          // Listen for messages on dgram2
-          const waitForMessage = () =>
-            new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
-              const timeout = setTimeout(
-                () => reject(new Error("Timeout waiting for datagram")),
-                WAIT_FOR_DATAGRAM_TIMEOUT,
-              );
-              dgram2.once("message", (msg: Buffer, from: string) => {
-                clearTimeout(timeout);
-                resolve({ msg, from });
-              });
+        // Listen for messages on dgram2
+        const waitForMessage = () =>
+          new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
+            const timeout = setTimeout(
+              () => reject(new Error("Timeout waiting for datagram")),
+              WAIT_FOR_DATAGRAM_TIMEOUT,
+            );
+            dgram2.once("message", (msg: Buffer, from: string) => {
+              clearTimeout(timeout);
+              resolve({ msg, from });
             });
+          });
 
-          // Send a datagram from dgram1 to dgram2
-          const testPayload = Buffer.from("hello from dgram1");
-          // Use the actual UDP port assigned to dgram2 for destination
-          await dgram1.sendRepliableDatagram(
-            dest2.public,
-            samUdpPort,
-            samUdpPort,
-            testPayload,
-          );
+        // Send a datagram from dgram1 to dgram2
+        const testPayload = Buffer.from("hello from dgram1");
+        // Use the actual UDP port assigned to dgram2 for destination
+        await dgram1.sendRepliableDatagram(
+          dest2.public,
+          samUdpPort,
+          samUdpPort,
+          testPayload,
+        );
 
-          // Wait for datagram on dgram2
-          const { msg, from } = await waitForMessage();
-          expect(msg.toString()).toBe("hello from dgram1");
-          // Optionally check sender address if available
+        // Wait for datagram on dgram2
+        const { msg, from } = await waitForMessage();
+        expect(msg.toString()).toBe("hello from dgram1");
+        // Optionally check sender address if available
 
-          // Send a reply from dgram2 to dgram1
-          const replyPayload = Buffer.from("hello from dgram2");
-          // Use the actual UDP port assigned to dgram1 for destination
-          await dgram2.sendRepliableDatagram(
-            dest1.public,
-            samUdpPort,
-            samUdpPort,
-            replyPayload,
-          );
+        // Send a reply from dgram2 to dgram1
+        const replyPayload = Buffer.from("hello from dgram2");
+        // Use the actual UDP port assigned to dgram1 for destination
+        await dgram2.sendRepliableDatagram(
+          dest1.public,
+          samUdpPort,
+          samUdpPort,
+          replyPayload,
+        );
 
-          // Wait for reply on dgram1
-          const reply = await new Promise<{ msg: Buffer; from: string }>(
-            (resolve, reject) => {
-              const timeout = setTimeout(
-                () => reject(new Error("Timeout waiting for reply")),
-                WAIT_FOR_DATAGRAM_TIMEOUT,
-              );
-              dgram1.once("message", (msg: Buffer, from: string) => {
-                clearTimeout(timeout);
-                resolve({ msg, from });
-              });
-            },
-          );
-          expect(reply.msg.toString()).toBe("hello from dgram2");
+        // Wait for reply on dgram1
+        const reply = await new Promise<{ msg: Buffer; from: string }>(
+          (resolve, reject) => {
+            const timeout = setTimeout(
+              () => reject(new Error("Timeout waiting for reply")),
+              WAIT_FOR_DATAGRAM_TIMEOUT,
+            );
+            dgram1.once("message", (msg: Buffer, from: string) => {
+              clearTimeout(timeout);
+              resolve({ msg, from });
+            });
+          },
+        );
+        expect(reply.msg.toString()).toBe("hello from dgram2");
 
-          // Cleanup (add close methods if available)
-          // dgram1.close?.();
-          // dgram2.close?.();
-          // If SAM has a close method, call it here
-        },
-        WAIT_FOR_DATAGRAM_TIMEOUT * 2,
-      );
+        // Cleanup (add close methods if available)
+        // dgram1.close?.();
+        // dgram2.close?.();
+        // If SAM has a close method, call it here
+      });
     });
 
     describe("SAM integration: raw datagrams", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should establish two destinations and exchange raw datagrams", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -266,15 +244,6 @@ describe(
     });
 
     describe("SAM integration: streaming data between destinations", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-      });
-
       it("should create two destinations and stream data to each other", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -379,7 +348,7 @@ describe(
         clientSocket.destroy();
         serverSocket.destroy();
         // Optionally close sessions if supported
-      }, 30000);
+      });
 
       it("should establish multiple streams to the same destination and send unique data", async () => {
         const destA = await SAM.generateDestination({
@@ -470,23 +439,10 @@ describe(
         // Cleanup
         clientSockets.forEach((socket) => socket.destroy());
         serverSockets.forEach((socket) => socket.destroy());
-      }, 30000);
+      });
     });
 
     describe("SAM integration: repliable datagrams port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -610,19 +566,6 @@ describe(
     });
 
     describe("SAM integration: raw datagrams port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -740,15 +683,6 @@ describe(
     });
 
     describe("SAM integration: streaming data port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get connections sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -758,7 +692,6 @@ describe(
           host: samHost,
           port: samTcpPort,
         });
-
         const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
@@ -786,7 +719,6 @@ describe(
           "STREAM",
           13,
         );
-
         // Try to create a stream to port 14
         const clientSocket = await stream1.createStream({
           destination: dest2.public,

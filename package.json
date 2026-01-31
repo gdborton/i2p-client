@@ -4,6 +4,8 @@
     "build": "rm -rf dist; tsc -p tsconfig.build.json",
     "dev": "tsc --watch -p tsconfig.build.json",
     "test": "vitest --run",
+    "test:integration": "vitest --run ./test/integration",
+    "test:unit": "vitest --run ./test/unit",
     "tsc": "tsc --noEmit"
   },
   "keywords": [
