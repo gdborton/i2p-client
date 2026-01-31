@@ -7,17 +7,17 @@ import LRU from "lru";
 import TypedEmitter from "typed-emitter";
 import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
 
-import { generatePrivateKeyPair as genEgamlKeyPair } from "./crypto/elgamal.js";
-import { stringDestinationToBuffer } from "./utils/utils.js";
+import { generatePrivateKeyPair as genEgamlKeyPair } from "../../crypto/elgamal.js";
+import { stringDestinationToBuffer } from "../../utils/utils.js";
 import {
   Destination,
   generateLocalDestination,
   LocalDestination,
   SIGNING_PUBLIC_KEY_TYPE,
-} from "./Destination.js";
+} from "../../protocol/Destination.js";
 import { I2CPSocket, Packet } from "./I2CPSocket.js";
-import { oneByteInteger, twoByteInteger } from "./utils/byte-utils.js";
-import { createDatagram1 } from "./Datagram1.js";
+import { oneByteInteger, twoByteInteger } from "../../utils/byte-utils.js";
+import { createDatagram1 } from "../../protocol/Datagram1.js";
 import {
   I2P_PROTOCOL,
   MESSAGE_ID_BYTE_LENGTH,
@@ -26,9 +26,9 @@ import {
   NONCE_BYTE_LENGTH,
   SESSION_ID_BYTE_LENGTH,
   unpackMessagePayloadMessage,
-} from "./utils/i2cp-utils.js";
+} from "./i2cp-utils.js";
 
-export { bufferDestinationToString } from "./utils/utils.js";
+export { bufferDestinationToString } from "../../utils/utils.js";
 
 const gzip = promisify(gzipCallback);
 

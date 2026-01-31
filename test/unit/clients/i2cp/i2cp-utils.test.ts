@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
-import { Destination } from "../../../src/Destination";
-import { unpackMessagePayloadMessage } from "../../../src/utils/i2cp-utils";
-import { fourByteInteger } from "../../../src/utils/byte-utils";
+import { Destination } from "../../../../src/protocol/Destination";
+import { fourByteInteger } from "../../../../src/utils/byte-utils";
+import { unpackMessagePayloadMessage } from "../../../../src/clients/i2cp/i2cp-utils";
 
 describe("i2cp-utils", () => {
   describe("unpack payload", () => {

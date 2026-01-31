@@ -4,10 +4,10 @@ import {
   generateLocalDestination,
   LocalDestination,
   SIGNING_PUBLIC_KEY_TYPE,
-} from "../../src/Destination";
+} from "../../../src/protocol/Destination";
 import { randomBytes } from "crypto";
 import { verify as verifyED25519, sign as signED25519 } from "@noble/ed25519";
-import { RedDSA } from "../../src/crypto/RedDSA";
+import { RedDSA } from "../../../src/crypto/RedDSA";
 
 describe("Destination", () => {
   test("DSA_SHA1 destinations", () => {

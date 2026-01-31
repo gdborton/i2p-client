@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMessage } from "../../../src/utils/sam-utils";
+import { parseMessage } from "../../../../src/clients/sam/sam-utils";
 
 describe("sam-utils", () => {
   const validDestinationString =

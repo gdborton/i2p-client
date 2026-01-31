@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import { isTcpPortOpen } from "./test-utils";
-import { I2CPSession } from "../../src/i2cp";
+import { I2CPSession } from "../../src/clients/i2cp/i2cp";
 
 describe(
   "I2CP",

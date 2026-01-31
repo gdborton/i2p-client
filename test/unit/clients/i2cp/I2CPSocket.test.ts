@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createPacketBuffer, Packet } from "../../src/I2CPSocket.js";
-import { generateLocalDestination } from "../../src/Destination.js";
+import {
+  createPacketBuffer,
+  Packet,
+} from "../../../../src/clients/i2cp/I2CPSocket.js";
+import { generateLocalDestination } from "../../../../src/protocol/Destination.js";
 
 describe("Packet", () => {
   it.skip("should verify correctly", () => {

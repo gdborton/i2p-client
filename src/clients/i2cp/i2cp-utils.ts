@@ -1,5 +1,5 @@
 import { promisify } from "node:util";
-import { Destination } from "../Destination";
+import { Destination } from "../../protocol/Destination";
 import { gunzip as gunzipCallback } from "node:zlib";
 
 const gunzip = promisify(gunzipCallback);

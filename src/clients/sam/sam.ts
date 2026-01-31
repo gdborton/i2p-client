@@ -8,10 +8,9 @@ import TypedEmitter from "typed-emitter";
 import {
   b64stringToB32String,
   stringDestinationToBuffer,
-} from "./utils/utils.js";
-import { Destination } from "./Destination.js";
-import { parseMessage, SamReplies } from "./utils/sam-utils.js";
-import { R } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
+} from "../../utils/utils.js";
+import { Destination } from "../../protocol/Destination.js";
+import { parseMessage, SamReplies } from "./sam-utils.js";
 
 /**
  * Add base64 padding if missing.
