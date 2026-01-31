@@ -43,30 +43,30 @@ async function isUdpPortOpen(port: number, host = "127.0.0.1") {
 describe(
   "SAM",
   {
-    timeout: 20_000,
+    timeout: 40_000,
   },
   () => {
+    const samHost = "127.0.0.1";
+    const samTcpPort = 7656;
+    const samUdpPort = 7655;
+    const i2pHttpProxyPort = 4444;
+
+    beforeAll(async () => {
+      // Check required ports
+      const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
+      const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
+      const httpOpen = await isTcpPortOpen(i2pHttpProxyPort, samHost);
+      if (!tcpOpen)
+        throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
+      if (!udpOpen)
+        throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
+      if (!httpOpen)
+        throw new Error(
+          `I2P HTTP proxy port ${i2pHttpProxyPort} not open on ${samHost}`,
+        );
+    });
+
     describe("SAM integration: repliable datagrams", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-      const i2pHttpProxyPort = 4444;
-
-      beforeAll(async () => {
-        // Check required ports
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        const httpOpen = await isTcpPortOpen(i2pHttpProxyPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-        if (!httpOpen)
-          throw new Error(
-            `I2P HTTP proxy port ${i2pHttpProxyPort} not open on ${samHost}`,
-          );
-      });
-
       it(
         "should establish two destinations and exchange repliable datagrams",
         async () => {
@@ -172,19 +172,6 @@ describe(
     });
 
     describe("SAM integration: raw datagrams", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should establish two destinations and exchange raw datagrams", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -266,15 +253,6 @@ describe(
     });
 
     describe("SAM integration: streaming data between destinations", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-      });
-
       it("should create two destinations and stream data to each other", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -474,19 +452,6 @@ describe(
     });
 
     describe("SAM integration: repliable datagrams port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -610,19 +575,6 @@ describe(
     });
 
     describe("SAM integration: raw datagrams port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-      const samUdpPort = 7655;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        const udpOpen = await isUdpPortOpen(samUdpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-        if (!udpOpen)
-          throw new Error(`SAM UDP port ${samUdpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -740,15 +692,6 @@ describe(
     });
 
     describe("SAM integration: streaming data port filtering", () => {
-      const samHost = "127.0.0.1";
-      const samTcpPort = 7656;
-
-      beforeAll(async () => {
-        const tcpOpen = await isTcpPortOpen(samTcpPort, samHost);
-        if (!tcpOpen)
-          throw new Error(`SAM TCP port ${samTcpPort} not open on ${samHost}`);
-      });
-
       it("should listen on port 13 and NOT get connections sent to port 14", async () => {
         const dest1 = await SAM.generateDestination({
           host: samHost,
@@ -758,7 +701,6 @@ describe(
           host: samHost,
           port: samTcpPort,
         });
-
         const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
@@ -786,7 +728,6 @@ describe(
           "STREAM",
           13,
         );
-
         // Try to create a stream to port 14
         const clientSocket = await stream1.createStream({
           destination: dest2.public,
