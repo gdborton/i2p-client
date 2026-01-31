@@ -6,7 +6,7 @@ const samTcpPort = 7656;
 const samUdpPort = 7655;
 
 // create a new destination
-const destination = await SAM.generateDestination({
+const destination = await generateDestination({
   host: samHost,
   port: samTcpPort,
 });

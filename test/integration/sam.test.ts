@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import {
-  SAM,
+  generateDestination,
   StreamAcceptSocket,
   type RepliableDatagramEvent,
 } from "../../src/clients/sam/sam";
@@ -32,11 +32,11 @@ describe(
     describe("SAM integration: repliable datagrams", () => {
       it("should establish two destinations and exchange repliable datagrams", async () => {
         // Generate destinations
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -132,11 +132,11 @@ describe(
 
     describe("SAM integration: raw datagrams", () => {
       it("should establish two destinations and exchange raw datagrams", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -213,11 +213,11 @@ describe(
 
     describe("SAM integration: streaming data between destinations", () => {
       it("should create two destinations and stream data to each other", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -319,11 +319,11 @@ describe(
       });
 
       it("should establish multiple streams to the same destination and send unique data", async () => {
-        const destA = await SAM.generateDestination({
+        const destA = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const destB = await SAM.generateDestination({
+        const destB = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -412,11 +412,11 @@ describe(
 
     describe("SAM integration: repliable datagrams port filtering", () => {
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -468,11 +468,11 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get messages sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -535,11 +535,11 @@ describe(
 
     describe("SAM integration: raw datagrams port filtering", () => {
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -593,11 +593,11 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get messages sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -652,11 +652,11 @@ describe(
 
     describe("SAM integration: streaming data port filtering", () => {
       it("should listen on port 13 and NOT get connections sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
@@ -706,11 +706,11 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get connections sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });

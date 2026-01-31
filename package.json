@@ -16,23 +16,27 @@
     "router",
     "client"
   ],
-  "main": "./dist/i2cp.js",
+  "main": "./dist/index.js",
   "exports": {
     ".": {
-      "import": "./dist/i2cp.js",
-      "require": "./dist/i2cp.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
     "./utils": {
       "import": "./dist/utils/utils.js",
       "require": "./dist/utils/utils.js"
     },
-    "./sam": {
-      "import": "./dist/sam.js",
-      "require": "./dist/sam.js"
+    "./clients/i2cp": {
+      "import": "./dist/clients/i2cp/i2cp.js",
+      "require": "./dist/clients/i2cp/i2cp.js"
     },
-    "./Destination": {
-      "import": "./dist/Destination.js",
-      "require": "./dist/Destination.js"
+    "./clients/sam": {
+      "import": "./dist/clients/sam/sam.js",
+      "require": "./dist/clients/sam/sam.js"
+    },
+    "./protocol/*": {
+      "import": "./dist/protocol/*.js",
+      "require": "./dist/protocol/*.js"
     }
   },
   "dependencies": {
