@@ -186,6 +186,10 @@ abstract class BaseSamSocket extends EventEmitter {
       } else {
         this.emit("error", new Error(msg.args.MESSAGE));
       }
+    } else if (msg.type === SamReplies.REPLY_QUIT) {
+      if (msg.args.RESULT === "OK") {
+        this.socket.destroy();
+      }
     } else {
       console.error("UNHANDLED SAM MESSAGE:", msg);
     }
@@ -822,6 +826,7 @@ enum SamReplies {
   REPLY_DESTINATION = "DEST REPLY",
   REPLY_SESSION = "SESSION STATUS",
   REPLY_NAMING = "NAMING REPLY",
+  REPLY_QUIT = "QUIT STATUS",
 }
 
 interface Args {
@@ -888,6 +893,13 @@ interface Args {
           NAME: string;
           MESSAGE: string;
         };
+  };
+  [SamReplies.REPLY_QUIT]: {
+    type: SamReplies.REPLY_QUIT;
+    args: {
+      RESULT: "OK";
+      MESSAGE: string;
+    };
   };
 }
 

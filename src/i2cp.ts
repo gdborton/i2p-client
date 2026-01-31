@@ -1,10 +1,13 @@
 import { Socket } from "net";
-import { generatePrivateKeyPair as genEgamlKeyPair } from "./crypto/elgamal.js";
 import { promisify } from "node:util";
-import { gzip as gzipCallback, gunzip as gunzipCallback } from "node:zlib";
 import { EventEmitter } from "events";
+import { gzip as gzipCallback, gunzip as gunzipCallback } from "node:zlib";
+
 import LRU from "lru";
 import TypedEmitter from "typed-emitter";
+import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
+
+import { generatePrivateKeyPair as genEgamlKeyPair } from "./crypto/elgamal.js";
 import { stringDestinationToBuffer } from "./utils/utils.js";
 import {
   Destination,
@@ -14,7 +17,6 @@ import {
 } from "./Destination.js";
 import { I2CPSocket, Packet } from "./I2CPSocket.js";
 import { oneByteInteger, twoByteInteger } from "./utils/byte-utils.js";
-import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
 import { createDatagram1 } from "./Datagram1.js";
 
 export { bufferDestinationToString } from "./utils/utils.js";
@@ -401,7 +403,6 @@ const convertLease1sToLease2s = (count: number, leases: Buffer): Buffer => {
     }
     const newEndDateBuffer = Buffer.alloc(4);
     const endDate = Number(oldEndDateBuffer.readBigUint64BE(0));
-    // console.log("end date", new Date(endDate).toString());
     newEndDateBuffer.writeUInt32BE(Math.floor(endDate / 1000), 0);
     const newLease = Buffer.concat([tunnelHashAndId, newEndDateBuffer]);
     if (newLease.byteLength !== LEASE_2_BYTE_LENGTH) {
@@ -593,7 +594,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
         clearInterval(reconnectTimer!);
         if (this.socketConnected) return;
         reconnectTimer = null;
-        console.log("Attempting to reconnect...");
         this.socket.connect(socketConfig);
       }, 5000);
     };
@@ -603,7 +603,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
       attemptReconnect();
     });
     this.socket.on("error", (error) => {
-      console.log("socket error", error);
       attemptReconnect();
     });
     this.socket.on("data", this.routeMessage);
@@ -634,13 +633,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
     destinationPort: number,
     payload: Buffer,
   ) => {
-    console.log(
-      "sending datagram...",
-      destination,
-      sourcePort,
-      destinationPort,
-      payload.length,
-    );
     if (!this.sessionId) {
       throw new Error("Session ID is not set");
     }
@@ -665,13 +657,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
     destinationPort: number,
     payload: Buffer,
   ) => {
-    console.log(
-      "sending repliable datagram...",
-      destination,
-      sourcePort,
-      destinationPort,
-      payload.length,
-    );
     if (!this.sessionId) {
       throw new Error("Session ID is not set");
     }
@@ -700,7 +685,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
     destinationPort: number,
     payload: Buffer,
   ) => {
-    console.log("sending stream datagram...");
     const sendMessage = await this.createSendMessageMessage(
       destination,
       sourcePort,
@@ -708,7 +692,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
       I2P_PROTOCOL.STREAMING,
       payload,
     );
-    // console.log("writing to stream....");
     this.write(sendMessage);
   };
 
@@ -780,11 +763,9 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
       delete this.streams[stream.streamId];
     });
     stream.on("finish", () => {
-      console.log("finish event deleting stream", stream.streamId);
       delete this.streams[stream.streamId];
     });
     stream.on("end", () => {
-      console.log("end event deleting stream", stream.streamId);
       delete this.streams[stream.streamId];
     });
     return stream;
@@ -796,13 +777,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
     destinationPort: number,
     payload: Buffer,
   ) => {
-    console.log(
-      "stream called",
-      destination,
-      sourcePort,
-      destinationPort,
-      payload.length,
-    );
     if (!this.sessionId) {
       throw new Error("Session ID is not set");
     }
@@ -837,7 +811,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
         this.handleMessageStatusMessage(decoded.messageData);
         break;
       case messageTypes.MessagePayloadMessage:
-        console.log("message payload message received");
         this.handleMessagePayloadMessage(decoded.messageData);
         break;
       case messageTypes.HostReplyMessage:
@@ -867,7 +840,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
   private handleSetDateMessage = (data: Buffer) => {
     const timestamp = data.readBigUInt64BE(0);
     // const date = new Date(Number(timestamp));
-    // console.log(`Router time: ${date.toString()}`);
     if (this.sessionId) return;
 
     const sessionConfigBuffer = generateSessionConfigBuffer(this.destination);
@@ -881,13 +853,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
   private handleSessionStatusMessage = async (data: Buffer) => {
     const sessionId = data.subarray(0, 2);
     const status = data.readUint8(2);
-    console.log(
-      "Session status message",
-      "sessionid:",
-      sessionId,
-      "status:",
-      status,
-    );
     if (status === SESSION_STATUS.CREATED) {
       this.emit("session_created");
     }
@@ -895,7 +860,6 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
   };
 
   private handleRequestVariableLeaseSetMessage = (data: Buffer) => {
-    console.log("tunnels created, router requesting that we send our leaseset");
     const sessionId = data.readUint16BE(0);
     const numberOfTunnels = data.readUintBE(2, 1);
     // lease1s are 44 bytes each
@@ -968,19 +932,12 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
   };
 
   private handleMessagePayloadMessage = async (data: Buffer) => {
-    // console.log("--> incoming message");
-    // const sessionId = data.readUint16BE(0);
-    // const messageID = data.readInt32BE(SESSION_ID_BYTE_LENGTH);
     const payloadBuffer = data.subarray(
       SESSION_ID_BYTE_LENGTH + MESSAGE_ID_BYTE_LENGTH,
     );
     const { payload, sourcePort, destinationPort, protocol, from } =
       await unpackPayload(payloadBuffer);
     if (protocol === I2P_PROTOCOL.STREAMING) {
-      // console.log("streaming message", data.toString("hex"));
-      // console.log("ports", sourcePort, destinationPort);
-      // console.log('"streaming" message', payload.toString("hex"));
-      // console.log("from?", !!from);
       const packet = new Packet(payload);
       const stream =
         this.streams[packet.receiveStreamId] ||

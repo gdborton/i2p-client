@@ -24,7 +24,6 @@ describe("i2cp", () => {
           "FZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhI~Tgvro2isW1Os3c7fwHUqk7tU7i6yd5yZkCYaOIlKlBQAEAAcAAA==",
         ),
       );
-      console.log(d.certType, d.signingPublicKeyType, d.cryptoPublicKeyType);
     });
   });
 });

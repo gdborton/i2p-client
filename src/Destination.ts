@@ -158,9 +158,9 @@ export class Destination {
       dest.subarray(SIGN_REMAI_LOC, SIGN_REMAI_LOC + signingRemainder),
     ]);
     if (publicSigningBuffer.byteLength !== signingPublicKeyLength) {
-      console.log("part1", publicSigningStartLoc, CERT_TYPE_LOC);
-      console.log("part2", SIGN_REMAI_LOC, SIGN_REMAI_LOC + signingRemainder);
-      console.log("padding", padding);
+      // console.log("part1", publicSigningStartLoc, CERT_TYPE_LOC);
+      // console.log("part2", SIGN_REMAI_LOC, SIGN_REMAI_LOC + signingRemainder);
+      // console.log("padding", padding);
       throw new Error();
     }
     this.publicSigningKey = publicSigningBuffer.toString("hex");
@@ -444,12 +444,7 @@ export const generateLocalDestination = (
     cryptoRemainder,
   ];
   const destBuffer = Buffer.concat(buffers);
-  console.log(
-    "private signing key",
-    Buffer.from(privateSigningKey).toString("hex"),
-    signingType,
-    Buffer.from(privateSigningKey).toString("hex").length,
-  );
+
   return {
     destination: new LocalDestination(destBuffer, privateSigningKey),
     privateSigningKey,
