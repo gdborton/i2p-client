@@ -67,108 +67,104 @@ describe(
     });
 
     describe("SAM integration: repliable datagrams", () => {
-      it(
-        "should establish two destinations and exchange repliable datagrams",
-        async () => {
-          // Generate destinations
-          const dest1 = await SAM.generateDestination({
-            host: samHost,
-            port: samTcpPort,
-          });
-          const dest2 = await SAM.generateDestination({
-            host: samHost,
-            port: samTcpPort,
-          });
+      it("should establish two destinations and exchange repliable datagrams", async () => {
+        // Generate destinations
+        const dest1 = await SAM.generateDestination({
+          host: samHost,
+          port: samTcpPort,
+        });
+        const dest2 = await SAM.generateDestination({
+          host: samHost,
+          port: samTcpPort,
+        });
 
-          // Start primary sessions for each destination
-          const { PrimarySession } = await import("../../src/sam");
-          const primary1 = new PrimarySession({
-            host: samHost,
-            tcpPort: samTcpPort,
-            udpPort: samUdpPort, // use standard default UDP port
-            publicKey: dest1.public,
-            privateKey: dest1.private,
-          });
-          const primary2 = new PrimarySession({
-            host: samHost,
-            tcpPort: samTcpPort,
-            udpPort: samUdpPort, // use standard default UDP port
-            publicKey: dest2.public,
-            privateKey: dest2.private,
-          });
+        // Start primary sessions for each destination
+        const { PrimarySession } = await import("../../src/sam");
+        const primary1 = new PrimarySession({
+          host: samHost,
+          tcpPort: samTcpPort,
+          udpPort: samUdpPort, // use standard default UDP port
+          publicKey: dest1.public,
+          privateKey: dest1.private,
+        });
+        const primary2 = new PrimarySession({
+          host: samHost,
+          tcpPort: samTcpPort,
+          udpPort: samUdpPort, // use standard default UDP port
+          publicKey: dest2.public,
+          privateKey: dest2.private,
+        });
 
-          // Create repliable datagram sessions from primary sessions
-          const dgram1 = await primary1.getOrCreateSubsession(
-            "dgram1",
-            "DATAGRAM",
-            samUdpPort,
-          );
-          const dgram2 = await primary2.getOrCreateSubsession(
-            "dgram2",
-            "DATAGRAM",
-            samUdpPort,
-          );
+        // Create repliable datagram sessions from primary sessions
+        const dgram1 = await primary1.getOrCreateSubsession(
+          "dgram1",
+          "DATAGRAM",
+          samUdpPort,
+        );
+        const dgram2 = await primary2.getOrCreateSubsession(
+          "dgram2",
+          "DATAGRAM",
+          samUdpPort,
+        );
 
-          // Listen for messages on dgram2
-          const waitForMessage = () =>
-            new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
-              const timeout = setTimeout(
-                () => reject(new Error("Timeout waiting for datagram")),
-                WAIT_FOR_DATAGRAM_TIMEOUT,
-              );
-              dgram2.once("message", (msg: Buffer, from: string) => {
-                clearTimeout(timeout);
-                resolve({ msg, from });
-              });
+        // Listen for messages on dgram2
+        const waitForMessage = () =>
+          new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
+            const timeout = setTimeout(
+              () => reject(new Error("Timeout waiting for datagram")),
+              WAIT_FOR_DATAGRAM_TIMEOUT,
+            );
+            dgram2.once("message", (msg: Buffer, from: string) => {
+              clearTimeout(timeout);
+              resolve({ msg, from });
             });
+          });
 
-          // Send a datagram from dgram1 to dgram2
-          const testPayload = Buffer.from("hello from dgram1");
-          // Use the actual UDP port assigned to dgram2 for destination
-          await dgram1.sendRepliableDatagram(
-            dest2.public,
-            samUdpPort,
-            samUdpPort,
-            testPayload,
-          );
+        // Send a datagram from dgram1 to dgram2
+        const testPayload = Buffer.from("hello from dgram1");
+        // Use the actual UDP port assigned to dgram2 for destination
+        await dgram1.sendRepliableDatagram(
+          dest2.public,
+          samUdpPort,
+          samUdpPort,
+          testPayload,
+        );
 
-          // Wait for datagram on dgram2
-          const { msg, from } = await waitForMessage();
-          expect(msg.toString()).toBe("hello from dgram1");
-          // Optionally check sender address if available
+        // Wait for datagram on dgram2
+        const { msg, from } = await waitForMessage();
+        expect(msg.toString()).toBe("hello from dgram1");
+        // Optionally check sender address if available
 
-          // Send a reply from dgram2 to dgram1
-          const replyPayload = Buffer.from("hello from dgram2");
-          // Use the actual UDP port assigned to dgram1 for destination
-          await dgram2.sendRepliableDatagram(
-            dest1.public,
-            samUdpPort,
-            samUdpPort,
-            replyPayload,
-          );
+        // Send a reply from dgram2 to dgram1
+        const replyPayload = Buffer.from("hello from dgram2");
+        // Use the actual UDP port assigned to dgram1 for destination
+        await dgram2.sendRepliableDatagram(
+          dest1.public,
+          samUdpPort,
+          samUdpPort,
+          replyPayload,
+        );
 
-          // Wait for reply on dgram1
-          const reply = await new Promise<{ msg: Buffer; from: string }>(
-            (resolve, reject) => {
-              const timeout = setTimeout(
-                () => reject(new Error("Timeout waiting for reply")),
-                WAIT_FOR_DATAGRAM_TIMEOUT,
-              );
-              dgram1.once("message", (msg: Buffer, from: string) => {
-                clearTimeout(timeout);
-                resolve({ msg, from });
-              });
-            },
-          );
-          expect(reply.msg.toString()).toBe("hello from dgram2");
+        // Wait for reply on dgram1
+        const reply = await new Promise<{ msg: Buffer; from: string }>(
+          (resolve, reject) => {
+            const timeout = setTimeout(
+              () => reject(new Error("Timeout waiting for reply")),
+              WAIT_FOR_DATAGRAM_TIMEOUT,
+            );
+            dgram1.once("message", (msg: Buffer, from: string) => {
+              clearTimeout(timeout);
+              resolve({ msg, from });
+            });
+          },
+        );
+        expect(reply.msg.toString()).toBe("hello from dgram2");
 
-          // Cleanup (add close methods if available)
-          // dgram1.close?.();
-          // dgram2.close?.();
-          // If SAM has a close method, call it here
-        },
-        WAIT_FOR_DATAGRAM_TIMEOUT * 2,
-      );
+        // Cleanup (add close methods if available)
+        // dgram1.close?.();
+        // dgram2.close?.();
+        // If SAM has a close method, call it here
+      });
     });
 
     describe("SAM integration: raw datagrams", () => {
@@ -357,7 +353,7 @@ describe(
         clientSocket.destroy();
         serverSocket.destroy();
         // Optionally close sessions if supported
-      }, 30000);
+      });
 
       it("should establish multiple streams to the same destination and send unique data", async () => {
         const destA = await SAM.generateDestination({
@@ -448,7 +444,7 @@ describe(
         // Cleanup
         clientSockets.forEach((socket) => socket.destroy());
         serverSockets.forEach((socket) => socket.destroy());
-      }, 30000);
+      });
     });
 
     describe("SAM integration: repliable datagrams port filtering", () => {
