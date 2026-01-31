@@ -4,12 +4,14 @@ import dgram from "node:dgram";
 
 // @ts-expect-error
 import split2 from "split2";
+import TypedEmitter from "typed-emitter";
 import {
   b64stringToB32String,
   stringDestinationToBuffer,
 } from "./utils/utils.js";
 import { Destination } from "./Destination.js";
 import { parseMessage, SamReplies } from "./utils/sam-utils.js";
+import { R } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
 
 /**
  * Add base64 padding if missing.
@@ -429,7 +431,11 @@ export class StreamSocket extends BaseSamSocket {
   }
 }
 
-export class StreamSession extends EventEmitter {
+export type StreamEvent = StreamAcceptSocket;
+type StreamSessionEvents = {
+  stream: (stream: StreamEvent) => void;
+};
+export class StreamSession extends (EventEmitter as new () => TypedEmitter<StreamSessionEvents>) {
   private host: string;
   private port: number;
   public id: string;
@@ -483,7 +489,7 @@ export class StreamSession extends EventEmitter {
             // Now set hasStream to start forwarding data
             // @ts-ignore
             acceptSocket.hasStream = true;
-            this.emit("connection", acceptSocket);
+            this.emit("stream", acceptSocket);
             // Accept the next connection
             setImmediate(acceptNext);
           }
@@ -547,24 +553,26 @@ class DatagramServer {
         const toPort = parseInt(args.TO_PORT, 10);
         if (expectedToPort === undefined || toPort === expectedToPort) {
           // Emit both for backward compatibility
-          subsession.emit("repliableDatagram", {
+          (subsession as RepliableDatagramSession).emit("repliableDatagram", {
             destination: destination,
             fromPort: parseInt(args.FROM_PORT, 10),
             toPort,
             payload,
           });
-          // Also emit 'message' for test compatibility
-          subsession.emit("message", payload, destination);
         }
       } else {
-        subsession.emit("rawDatagram", msg);
+        (subsession as RawDatagramSession).emit("rawDatagram", msg);
       }
     });
 
     server.bind(port); // The port number to listen on
   }
 }
-export class RawDatagramSession extends EventEmitter {
+export type RawDatagramEvent = Buffer;
+type RawDGEvents = {
+  rawDatagram: (payload: RawDatagramEvent) => void;
+};
+export class RawDatagramSession extends (EventEmitter as new () => TypedEmitter<RawDGEvents>) {
   public id: string;
   private socket: dgram.Socket;
   private host: string;
@@ -616,7 +624,16 @@ process.on("uncaughtException", (err) => {
   console.error(err.stack);
 });
 
-export class RepliableDatagramSession extends EventEmitter {
+export type RepliableDatagramEvent = {
+  destination: string;
+  fromPort: number;
+  toPort: number;
+  payload: Buffer;
+};
+type RepliableDBEvents = {
+  repliableDatagram: (obj: RepliableDatagramEvent) => void;
+};
+export class RepliableDatagramSession extends (EventEmitter as new () => TypedEmitter<RepliableDBEvents>) {
   public id: string;
   private socket: dgram.Socket;
   private host: string;
@@ -641,11 +658,6 @@ export class RepliableDatagramSession extends EventEmitter {
     this.socket = dgram.createSocket("udp4");
     this.port = port;
     this.host = host;
-    this.socket.on("message", (msg, rinfo) => {
-      // This event is not used for incoming SAM datagrams; handled by DatagramServer
-      // But emit for local UDP messages if needed
-      this.emit("message", msg, rinfo.address);
-    });
     new DatagramServer(listenUdpPort, this, this.fromPort);
   }
 

@@ -1,7 +1,11 @@
 import net from "net";
 import dgram from "dgram";
 import { describe, it, beforeAll, expect } from "vitest";
-import { SAM, StreamAcceptSocket } from "../../src/sam";
+import {
+  SAM,
+  StreamAcceptSocket,
+  type RepliableDatagramEvent,
+} from "../../src/sam";
 
 const WAIT_FOR_DATAGRAM_TIMEOUT = 5_000;
 
@@ -104,14 +108,14 @@ describe(
 
         // Listen for messages on dgram2
         const waitForMessage = () =>
-          new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
+          new Promise<RepliableDatagramEvent>((resolve, reject) => {
             const timeout = setTimeout(
               () => reject(new Error("Timeout waiting for datagram")),
               WAIT_FOR_DATAGRAM_TIMEOUT,
             );
-            dgram2.once("message", (msg: Buffer, from: string) => {
+            dgram2.once("repliableDatagram", (obj) => {
               clearTimeout(timeout);
-              resolve({ msg, from });
+              resolve(obj);
             });
           });
 
@@ -126,8 +130,8 @@ describe(
         );
 
         // Wait for datagram on dgram2
-        const { msg, from } = await waitForMessage();
-        expect(msg.toString()).toBe("hello from dgram1");
+        const obj = await waitForMessage();
+        expect(obj.payload.toString()).toBe("hello from dgram1");
         // Optionally check sender address if available
 
         // Send a reply from dgram2 to dgram1
@@ -141,19 +145,19 @@ describe(
         );
 
         // Wait for reply on dgram1
-        const reply = await new Promise<{ msg: Buffer; from: string }>(
+        const reply = await new Promise<RepliableDatagramEvent>(
           (resolve, reject) => {
             const timeout = setTimeout(
               () => reject(new Error("Timeout waiting for reply")),
               WAIT_FOR_DATAGRAM_TIMEOUT,
             );
-            dgram1.once("message", (msg: Buffer, from: string) => {
+            dgram1.once("repliableDatagram", (obj) => {
               clearTimeout(timeout);
-              resolve({ msg, from });
+              resolve(obj);
             });
           },
         );
-        expect(reply.msg.toString()).toBe("hello from dgram2");
+        expect(reply.payload.toString()).toBe("hello from dgram2");
 
         // Cleanup (add close methods if available)
         // dgram1.close?.();
@@ -287,7 +291,7 @@ describe(
               () => reject(new Error("Timeout waiting for stream connection")),
               WAIT_FOR_DATAGRAM_TIMEOUT,
             );
-            stream2.once("connection", (socket: StreamAcceptSocket) => {
+            stream2.once("stream", (socket: StreamAcceptSocket) => {
               clearTimeout(timeout);
               resolve(socket);
             });
@@ -391,7 +395,7 @@ describe(
         const receivedData: string[] = [];
 
         // Listen for incoming connections on streamB
-        streamB.on("connection", (socket: StreamAcceptSocket) => {
+        streamB.on("stream", (socket: StreamAcceptSocket) => {
           serverSockets.push(socket);
           let data = Buffer.alloc(0);
           socket.on("data", (chunk: Buffer) => {
@@ -492,7 +496,7 @@ describe(
 
         // Wait a bit and check no message received
         let received = false;
-        dgram2.once("message", () => {
+        dgram2.once("repliableDatagram", () => {
           received = true;
         });
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -539,14 +543,14 @@ describe(
 
         // Listen for messages on dgram2
         const waitForMessage = () =>
-          new Promise<{ msg: Buffer; from: string }>((resolve, reject) => {
+          new Promise<RepliableDatagramEvent>((resolve, reject) => {
             const timeout = setTimeout(
               () => reject(new Error("Timeout waiting for datagram")),
               WAIT_FOR_DATAGRAM_TIMEOUT,
             );
-            dgram2.once("message", (msg: Buffer, from: string) => {
+            dgram2.once("repliableDatagram", (obj) => {
               clearTimeout(timeout);
-              resolve({ msg, from });
+              resolve(obj);
             });
           });
 
@@ -560,8 +564,8 @@ describe(
         );
 
         // Wait for datagram on dgram2
-        const { msg } = await waitForMessage();
-        expect(msg.toString()).toBe("hello to port 13");
+        const obj = await waitForMessage();
+        expect(obj.payload.toString()).toBe("hello to port 13");
       });
     });
 
@@ -728,7 +732,7 @@ describe(
 
         // Wait a bit and check no connection received
         let connected = false;
-        stream2.once("connection", () => {
+        stream2.once("stream", () => {
           connected = true;
         });
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -782,7 +786,7 @@ describe(
               () => reject(new Error("Timeout waiting for stream connection")),
               WAIT_FOR_DATAGRAM_TIMEOUT,
             );
-            stream2.once("connection", (socket: StreamAcceptSocket) => {
+            stream2.once("stream", (socket: StreamAcceptSocket) => {
               clearTimeout(timeout);
               resolve(socket);
             });
