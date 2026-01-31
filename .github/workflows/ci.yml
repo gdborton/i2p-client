@@ -38,7 +38,6 @@ jobs:
           sudo cat /usr/share/i2p/clients.config
           echo "Adding SAMBridge to clients.config"
           sudo sed -i 's/startOnLoad=false/startOnLoad=true/' /usr/share/i2p/clients.config
-          sudo sh -c 'echo "clientApp.1.delay=15" >> /usr/share/i2p/clients.config'
           echo "New clients.config:"
           sudo cat /usr/share/i2p/clients.config
 
