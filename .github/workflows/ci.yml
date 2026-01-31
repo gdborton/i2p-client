@@ -34,6 +34,9 @@ jobs:
 
       - name: Enable SAM in default clients.config
         run: |
+          echo "Current clients.config:"
+          sudo cat /usr/share/i2p/clients.config
+          echo "Adding SAMBridge to clients.config"
           sudo sed -i '/clientApp\.2=net\.i2p\.i2psnark\.I2PSnark/a clientApp.3=net.i2p.sam.SAMBridge' /usr/share/i2p/clients.config
 
       - name: Configure I2P to enable SAM
