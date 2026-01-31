@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install I2P
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y i2p
+
+      - name: Start I2P
+        run: sudo systemctl start i2p
+
+      - name: Wait for I2P to be ready
+        run: |
+          timeout 300 bash -c 'until nc -z localhost 7656; do sleep 5; done'
+
+      - name: Run tests
+        run: npm test
