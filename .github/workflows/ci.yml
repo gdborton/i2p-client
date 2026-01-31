@@ -38,16 +38,16 @@ jobs:
           sudo cat /usr/share/i2p/clients.config
           echo "Adding SAMBridge to clients.config"
           sudo sed -i 's/startOnLoad=false/startOnLoad=true/' /usr/share/i2p/clients.config
+          sudo sh -c 'echo "clientApp.1.delay=0" >> /usr/share/i2p/clients.config'
           echo "New clients.config:"
           sudo cat /usr/share/i2p/clients.config
-          sudo sh -c 'echo "clientApp.1.delay=0" >> /usr/share/i2p/clients.config'
 
       - name: Start I2P
         run: sudo systemctl start i2p
 
       - name: Wait for I2P to be ready
         run: |
-          if timeout 150 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
+          if timeout 300 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
             echo "SAM port ready"
           else
             echo "Timeout waiting for SAM port 7656"
