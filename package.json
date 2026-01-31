@@ -1,7 +1,7 @@
 {
   "name": "i2p-client",
   "scripts": {
-    "build": "rm -rf dist; tsc -p tsconfig.build.json",
+    "build": "rm -rf dist; tsc -p tsconfig.build.json --incremental false",
     "dev": "tsc --watch -p tsconfig.build.json",
     "test": "vitest --run",
     "test:integration": "vitest --run ./test/integration",
