@@ -1,12 +1,11 @@
-# Same Usage
-
-Creating a destination:
+# Sam
 
 ```typescript
 const samHost = "127.0.0.1";
 const samTcpPort = 7656;
 const samUdpPort = 7655;
 
+// create a new destination
 const destination = await SAM.generateDestination({
   host: samHost,
   port: samTcpPort,
