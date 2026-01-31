@@ -45,26 +45,5 @@ jobs:
       - name: Start I2P
         run: sudo systemctl start i2p
 
-      - name: Wait for I2P to be ready
-        skip: true
-        run: |
-          if timeout 150 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
-            echo "SAM port ready"
-          else
-            echo "Timeout waiting for SAM port 7656"
-            echo "I2P service status:"
-            sudo systemctl status i2p --no-pager || true
-            echo "Log directory contents:"
-            sudo ls -la /var/log/i2p/ || true
-            echo "Recent wrapper log:"
-            sudo tail -n 500 /var/log/i2p/wrapper.log || true
-            echo "Recent router log:"
-            sudo find /var/log/i2p -name "*.log" -o -name "*.txt" | xargs sudo tail -n 500 2>/dev/null || true
-            echo "Config files:"
-            sudo find /var/lib/i2p -name "router.config" -exec echo "=== {} ===" \; -exec sudo cat {} \; || true
-            sudo find /etc/i2p -name "wrapper.config" -exec echo "=== {} ===" \; -exec sudo cat {} \; || true
-            exit 1
-          fi
-
       - name: Run tests
         run: npm test
