@@ -1,11 +1,19 @@
 {
-  "name": "i2cp",
+  "name": "i2p-client",
   "scripts": {
     "build": "rm -rf dist; tsc -p tsconfig.build.json",
     "dev": "tsc --watch -p tsconfig.build.json",
     "test": "vitest --run",
     "tsc": "tsc --noEmit"
   },
+  "keywords": [
+    "i2cp",
+    "i2p",
+    "sam",
+    "destination",
+    "router",
+    "client"
+  ],
   "main": "./dist/i2cp.js",
   "exports": {
     ".": {
