@@ -54,7 +54,7 @@ jobs:
 
       - name: Wait for I2P to be ready
         run: |
-          if timeout 1200 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
+          if timeout 150 bash -c 'until nc -z localhost 7656; do sleep 5; done'; then
             echo "SAM port ready"
           else
             echo "Timeout waiting for SAM port 7656"
