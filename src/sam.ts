@@ -195,7 +195,9 @@ abstract class BaseSamSocket extends EventEmitter {
       }
     } else if (msg.type === SamReplies.PING) {
       // Handle PING messages if needed
-      this.socket.write(`PONG ${msg.args.REMAINDER}\n`);
+      this.socket.write(
+        `PONG${msg.args.REMAINDER ? ` ${msg.args.REMAINDER}` : ""}\n`,
+      );
     } else {
       console.log("raw message", message);
       console.error("UNHANDLED SAM MESSAGE:", msg);
