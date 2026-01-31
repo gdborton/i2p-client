@@ -93,8 +93,13 @@ export const parseMessage = <T extends SamReplies>(msg: string): Args[T] => {
 
   const argsObj: Record<string, string> = {};
   for (const arg of pargs) {
-    const [key, value] = arg.split("=");
-    if (key && value) {
+    // split only on the first '=' so values that contain '=' (e.g. base64 padding)
+    // are preserved intact
+    const eqIndex = arg.indexOf("=");
+    if (eqIndex === -1) continue;
+    const key = arg.substring(0, eqIndex);
+    const value = arg.substring(eqIndex + 1);
+    if (key) {
       try {
         argsObj[key] = value.startsWith('"') ? JSON.parse(value) : value;
       } catch (e) {
