@@ -5,6 +5,7 @@ export enum SamReplies {
   REPLY_SESSION = "SESSION STATUS",
   REPLY_NAMING = "NAMING REPLY",
   REPLY_QUIT = "QUIT STATUS",
+  PING = "PING",
 }
 
 interface Args {
@@ -79,9 +80,27 @@ interface Args {
       MESSAGE: string;
     };
   };
+  [SamReplies.PING]: {
+    type: SamReplies.PING;
+    args: {
+      REMAINDER: string;
+    };
+  };
 }
 
 export const parseMessage = <T extends SamReplies>(msg: string): Args[T] => {
+  if (msg.startsWith("PING")) {
+    const remainder = msg.substring(4).trim();
+    return {
+      type: SamReplies.PING,
+      args: {
+        REMAINDER: remainder,
+      },
+    } as Args[T] satisfies {
+      type: SamReplies;
+      args: Record<string, string>;
+    };
+  }
   // Split on the second space character
   const firstSpaceIndex = msg.indexOf(" ");
   const secondSpaceIndex = msg.indexOf(" ", firstSpaceIndex + 1);

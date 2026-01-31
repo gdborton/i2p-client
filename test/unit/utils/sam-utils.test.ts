@@ -29,5 +29,15 @@ describe("sam-utils", () => {
         type: "HELLO REPLY",
       });
     });
+
+    it("should parse PING messages", () => {
+      // this message was pulled from GH CI run, the spec mentions that PING can be sent with arbitrary text after it
+      expect(parseMessage("PING 1769892072538")).toEqual({
+        type: "PING",
+        args: {
+          REMAINDER: "1769892072538",
+        },
+      });
+    });
   });
 });
