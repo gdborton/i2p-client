@@ -58,7 +58,7 @@ jobs:
             echo "Recent wrapper log:"
             sudo tail -n 500 /var/log/i2p/wrapper.log || true
             echo "Recent router log:"
-            sudo tail -n 500 /var/log/i2p/log-router-*.txt || true
+            sudo find /var/log/i2p -name "*.log" -o -name "*.txt" | xargs sudo tail -n 500 2>/dev/null || true
             echo "Config files:"
             sudo find /var/lib/i2p -name "router.config" -exec echo "=== {} ===" \; -exec sudo cat {} \; || true
             sudo find /etc/i2p -name "wrapper.config" -exec echo "=== {} ===" \; -exec sudo cat {} \; || true
