@@ -86,3 +86,61 @@ streamSession.on("stream", (stream: Socket) => {
   stream.write("HI");
 });
 ```
+
+# I2CP
+
+> [!WARNING]  
+> It's not recommended to use I2CP. SAM should cover all your needs.
+
+```typescript
+const session1 = new I2CPSession({
+  i2cpHost: "localhost",
+  i2cpPort,
+  // you can optionally pass a LocalDestination instance
+});
+const session2 = new I2CPSession({
+  i2cpHost: "localhost",
+  i2cpPort,
+});
+
+const session1Ready = new Promise((resolve) => {
+  session1.on("session_created", () => {
+    resolve(true);
+  });
+});
+
+const session2Ready = new Promise((resolve) => {
+  session2.on("session_created", () => {
+    resolve(true);
+  });
+});
+await session1Ready;
+await session2Ready;
+
+// Repliable Datagrams
+const session1PortNumber = 13;
+const session2PortNumber = 14;
+const session1Port = session1.connect(session1PortNumber);
+const session2Port = session1.connect(session2PortNumber);
+
+session1Port.sendRepliableDatagram(
+  session1.getDestinationBuffer(),
+  session1PortNumber, // from port
+  session2PortNumber, // to port
+);
+
+session2Port.on("repliableMessage", (from, fromPort, payload) => {
+  console.log("got a message!");
+});
+
+// Streaming
+
+const stream = session1.createStream(session2.getDestinationBuffer());
+stream.write("Hello World!");
+
+session2.on("stream", (stream) => {
+  stream.on("data", (data) => {
+    console.log(String(data)); // Hello World!
+  });
+});
+```
