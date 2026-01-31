@@ -4,15 +4,15 @@ import {
   generateLocalDestination,
   LocalDestination,
   SIGNING_PUBLIC_KEY_TYPE,
-} from "./Destination";
+} from "../../src/Destination";
 import { randomBytes } from "crypto";
 import { verify as verifyED25519, sign as signED25519 } from "@noble/ed25519";
-import { RedDSA } from "./RedDSA";
+import { RedDSA } from "../../src/crypto/RedDSA";
 
 describe("Destination", () => {
   test("DSA_SHA1 destinations", () => {
     const { destination } = generateLocalDestination(
-      SIGNING_PUBLIC_KEY_TYPE.DSA_SHA1
+      SIGNING_PUBLIC_KEY_TYPE.DSA_SHA1,
     );
     expect(destination.byteLength).toBe(387);
     expect(destination instanceof LocalDestination).toBeTruthy();
@@ -49,7 +49,7 @@ describe("Destination", () => {
     const sig2 = RedDSA.sign(data, Buffer.from(privateSigningKey));
 
     expect(
-      RedDSA.verify(data, sig2, Buffer.from(publicSigningKey))
+      RedDSA.verify(data, sig2, Buffer.from(publicSigningKey)),
     ).toBeTruthy();
     expect(sig.byteLength).toBe(64);
     expect(destination.verify(data, sig)).toBeTruthy();

@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from "crypto";
-import { generatePrivateKeyPair, verify, sign } from "./dsa.js";
+import { generatePrivateKeyPair, verify, sign } from "./crypto/dsa.js";
 
 import {
   verify as verifyED25519,
@@ -14,13 +14,13 @@ import {
   b64stringToB32String,
   bufferDestinationToString,
   stringDestinationToBuffer,
-} from "./utils.js";
-import { RedDSA } from "./RedDSA.js";
+} from "./utils/utils.js";
+import { RedDSA } from "./crypto/RedDSA.js";
 import {
   bigIntFromBuff,
   bigIntFromHex,
   bigIntToBuffer,
-} from "./conversion-utils.js";
+} from "./utils/conversion-utils.js";
 
 export enum DESTINATION_CERT_TYPE {
   NULL = 0,
@@ -149,7 +149,7 @@ export class Destination {
     const publicKeyRemainder = cryptoPublicKeyLength - PARTIAL_CRYPTO_MAX;
     const padding = Math.max(
       0,
-      CERT_TYPE_LOC - cryptoPublicKeyLength - signingPublicKeyLength
+      CERT_TYPE_LOC - cryptoPublicKeyLength - signingPublicKeyLength,
     );
     const publicSigningStartLoc =
       Math.min(cryptoPublicKeyLength, PARTIAL_CRYPTO_MAX) + padding;
@@ -168,7 +168,7 @@ export class Destination {
       dest.subarray(0, Math.max(PARTIAL_CRYPTO_MAX, cryptoPublicKeyLength)),
       dest.subarray(
         PUB_PADD_SIGN_LEN + signingRemainder,
-        PUB_PADD_SIGN_LEN + signingRemainder + publicKeyRemainder
+        PUB_PADD_SIGN_LEN + signingRemainder + publicKeyRemainder,
       ),
     ]).toString("hex");
     this.byteLength =
@@ -219,7 +219,7 @@ export class Destination {
       const verified = RedDSA.verify(
         data,
         Buffer.from(signature),
-        Buffer.from(this.publicSigningKey, "hex")
+        Buffer.from(this.publicSigningKey, "hex"),
       );
       return verified;
     } else if (
@@ -229,7 +229,7 @@ export class Destination {
         signature,
         data,
         // see the notes in the public key generation function for why we add the 0x04 byte
-        `04${this.publicSigningKey}`
+        `04${this.publicSigningKey}`,
       );
       return verified;
     } else if (
@@ -272,14 +272,14 @@ export class LocalDestination extends Destination {
       return Buffer.from(signED25519(data, this.privateSigningKey));
     } else if (this.signingPublicKeyType === SIGNING_PUBLIC_KEY_TYPE.DSA_SHA1) {
       return Buffer.from(
-        sign(bigIntFromBuff(Buffer.from(this.privateSigningKey)), data)
+        sign(bigIntFromBuff(Buffer.from(this.privateSigningKey)), data),
       );
     } else if (
       this.signingPublicKeyType ===
       SIGNING_PUBLIC_KEY_TYPE.RedDSA_SHA512_Ed25519
     ) {
       return Buffer.from(
-        RedDSA.sign(data, Buffer.from(this.privateSigningKey))
+        RedDSA.sign(data, Buffer.from(this.privateSigningKey)),
       );
     } else if (
       this.signingPublicKeyType === SIGNING_PUBLIC_KEY_TYPE.ECDSA_SHA256_P256
@@ -290,13 +290,13 @@ export class LocalDestination extends Destination {
       this.signingPublicKeyType === SIGNING_PUBLIC_KEY_TYPE.ECDSA_SHA384_P384
     ) {
       return Buffer.from(
-        p384.sign(data, this.privateSigningKey).toCompactRawBytes()
+        p384.sign(data, this.privateSigningKey).toCompactRawBytes(),
       );
     } else if (
       this.signingPublicKeyType === SIGNING_PUBLIC_KEY_TYPE.ECDSA_SHA512_P521
     ) {
       return Buffer.from(
-        p521.sign(data, this.privateSigningKey).toCompactRawBytes()
+        p521.sign(data, this.privateSigningKey).toCompactRawBytes(),
       );
     } else {
       throw new Error("Unsupported signing type");
@@ -369,7 +369,7 @@ const keyPairMap: Record<
 };
 
 export const generateLocalDestination = (
-  signingType: DESTINATION_SIGNING_KEYS = SIGNING_PUBLIC_KEY_TYPE.DSA_SHA1
+  signingType: DESTINATION_SIGNING_KEYS = SIGNING_PUBLIC_KEY_TYPE.DSA_SHA1,
 ): {
   destination: LocalDestination;
   privateSigningKey: Uint8Array;
@@ -382,7 +382,7 @@ export const generateLocalDestination = (
     console.log(
       "Invalid public signing key length",
       publicSigningKey.byteLength,
-      SIGNING_PUBLIC_KEY_LENGTHS[signingType]
+      SIGNING_PUBLIC_KEY_LENGTHS[signingType],
     );
     throw new Error();
   }
@@ -391,11 +391,11 @@ export const generateLocalDestination = (
   const cryptoPublicKey = randomBytes(256);
   const cryptoPartialLength = Math.min(
     PARTIAL_CRYPTO_MAX,
-    cryptoPublicKey.byteLength
+    cryptoPublicKey.byteLength,
   );
   const signingPartialLength = Math.min(
     PARTIAL_SIGNIN_MAX,
-    publicSigningKey.byteLength
+    publicSigningKey.byteLength,
   );
   const cryptoRemainder = cryptoPublicKey.subarray(PARTIAL_CRYPTO_MAX);
   const signingRemainder = publicSigningKey.subarray(PARTIAL_SIGNIN_MAX);
@@ -424,7 +424,7 @@ export const generateLocalDestination = (
   const certInfoBuffer = Buffer.alloc(isKey ? 4 : 0);
   if (isKey) {
     certLengthBuffer.writeUInt16BE(
-      cryptoRemainder.byteLength + signingRemainder.byteLength + 4
+      cryptoRemainder.byteLength + signingRemainder.byteLength + 4,
     );
   } else {
     certLengthBuffer.writeUInt16BE(0);
@@ -448,7 +448,7 @@ export const generateLocalDestination = (
     "private signing key",
     Buffer.from(privateSigningKey).toString("hex"),
     signingType,
-    Buffer.from(privateSigningKey).toString("hex").length
+    Buffer.from(privateSigningKey).toString("hex").length,
   );
   return {
     destination: new LocalDestination(destBuffer, privateSigningKey),

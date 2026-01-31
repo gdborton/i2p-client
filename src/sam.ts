@@ -4,7 +4,10 @@ import dgram from "node:dgram";
 
 // @ts-expect-error
 import split2 from "split2";
-import { b64stringToB32String, stringDestinationToBuffer } from "./utils.js";
+import {
+  b64stringToB32String,
+  stringDestinationToBuffer,
+} from "./utils/utils.js";
 // import { createDatagram1 } from "./Datagram1.js";
 // import { LocalDestination, SIGNING_PUBLIC_KEY_TYPE } from "./Destination.js";
 // import dgram from "node:dgram";

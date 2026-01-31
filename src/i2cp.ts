@@ -1,11 +1,11 @@
 import { Socket } from "net";
-import { generatePrivateKeyPair as genEgamlKeyPair } from "./elgamal.js";
+import { generatePrivateKeyPair as genEgamlKeyPair } from "./crypto/elgamal.js";
 import { promisify } from "node:util";
 import { gzip as gzipCallback, gunzip as gunzipCallback } from "node:zlib";
 import { EventEmitter } from "events";
 import LRU from "lru";
 import TypedEmitter from "typed-emitter";
-import { stringDestinationToBuffer } from "./utils.js";
+import { stringDestinationToBuffer } from "./utils/utils.js";
 import {
   Destination,
   generateLocalDestination,
@@ -13,11 +13,11 @@ import {
   SIGNING_PUBLIC_KEY_TYPE,
 } from "./Destination.js";
 import { I2CPSocket, Packet } from "./I2CPSocket.js";
-import { oneByteInteger, twoByteInteger } from "./byte-utils.js";
+import { oneByteInteger, twoByteInteger } from "./utils/byte-utils.js";
 import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
 import { createDatagram1 } from "./Datagram1.js";
 
-export { bufferDestinationToString } from "./utils.js";
+export { bufferDestinationToString } from "./utils/utils.js";
 
 const gzip = promisify(gzipCallback);
 const gunzip = promisify(gunzipCallback);

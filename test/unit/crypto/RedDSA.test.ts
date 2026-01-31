@@ -1,5 +1,5 @@
 import { describe, test, expect, it } from "vitest";
-import { RedDSA } from "./RedDSA";
+import { RedDSA } from "../../../src/crypto/RedDSA";
 
 /**
  * Test vectors for RedDSA implementations
@@ -168,10 +168,10 @@ describe("REDDSA", () => {
     const hexToBuffer = (hex: string) => Buffer.from(hex, "hex");
     test("converting signing keys", () => {
       expect(RedDSA.convertPrivateKey(hexToBuffer(edsk))).toEqual(
-        hexToBuffer(sk)
+        hexToBuffer(sk),
       );
       expect(RedDSA.convertPublicKey(hexToBuffer(edpk))).toEqual(
-        hexToBuffer(vk)
+        hexToBuffer(vk),
       );
     });
 
@@ -182,17 +182,17 @@ describe("REDDSA", () => {
     test("signing and verifying", () => {
       const generatedSig = RedDSA.sign(hexToBuffer(msg), hexToBuffer(sk));
       expect(
-        RedDSA.verify(hexToBuffer(msg), generatedSig, hexToBuffer(vk))
+        RedDSA.verify(hexToBuffer(msg), generatedSig, hexToBuffer(vk)),
       ).toBeTruthy();
       expect(
-        RedDSA.verify(hexToBuffer(msg), hexToBuffer(sig), hexToBuffer(vk))
+        RedDSA.verify(hexToBuffer(msg), hexToBuffer(sig), hexToBuffer(vk)),
       ).toBeTruthy();
       expect(
         RedDSA.verify(
           hexToBuffer(msg),
           hexToBuffer(`a${sig.slice(1)}`),
-          hexToBuffer(vk)
-        )
+          hexToBuffer(vk),
+        ),
       ).toBeFalsy();
     });
 

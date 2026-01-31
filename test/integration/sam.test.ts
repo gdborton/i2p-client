@@ -1,7 +1,7 @@
 import net from "net";
 import dgram from "dgram";
 import { describe, it, beforeAll, expect } from "vitest";
-import { SAM, StreamAcceptSocket } from "../sam";
+import { SAM, StreamAcceptSocket } from "../../src/sam";
 
 const WAIT_FOR_DATAGRAM_TIMEOUT = 5_000;
 
@@ -81,7 +81,7 @@ describe(
           });
 
           // Start primary sessions for each destination
-          const { PrimarySession } = await import("../sam");
+          const { PrimarySession } = await import("../../src/sam");
           const primary1 = new PrimarySession({
             host: samHost,
             tcpPort: samTcpPort,
@@ -195,7 +195,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -285,7 +285,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -391,7 +391,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primaryA = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -497,7 +497,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -553,7 +553,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -633,7 +633,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -691,7 +691,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -759,7 +759,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -815,7 +815,7 @@ describe(
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../sam");
+        const { PrimarySession } = await import("../../src/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,

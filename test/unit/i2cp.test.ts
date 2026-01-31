@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
-import { Destination } from "./Destination";
-import { unpackPayload } from "./i2cp";
-import { stringDestinationToBuffer } from "./utils";
+import { Destination } from "../../src/Destination";
+import { unpackPayload } from "../../src/i2cp";
+import { stringDestinationToBuffer } from "../../src/utils/utils.js";
 
 describe("i2cp", () => {
   describe("unpack payload", () => {

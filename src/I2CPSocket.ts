@@ -7,7 +7,7 @@ import {
   fourByteInteger,
   oneByteInteger,
   getBit,
-} from "./byte-utils.js";
+} from "./utils/byte-utils.js";
 
 const RESEND_DELAY_SECONDS = 3; // 3 seconds
 enum PacketType {
@@ -179,11 +179,11 @@ export class Packet {
     const optionsPosition = 22 + nacksLength * 4;
     const optionsBuffer = packetBuffer.subarray(
       optionsPosition,
-      optionsPosition + optionsLength
+      optionsPosition + optionsLength,
     );
     this.payload = packetBuffer.subarray(
       22 + nacksLength * 4 + optionsLength,
-      packetBuffer.length
+      packetBuffer.length,
     );
 
     this.sync = !!getBit(flags, FLAG_BITS.SYNC);
@@ -196,11 +196,11 @@ export class Packet {
     const delayRequested = !!getBit(flags, FLAG_BITS.DELAY_REQUESTED);
     const offlineSignatureIncluded = !!getBit(
       flags,
-      FLAG_BITS.OFFLINE_SIGNATURE
+      FLAG_BITS.OFFLINE_SIGNATURE,
     );
     const includeMaxPacketSize = !!getBit(
       flags,
-      FLAG_BITS.MAX_PACKET_SIZE_INCLUDED
+      FLAG_BITS.MAX_PACKET_SIZE_INCLUDED,
     );
     // options are in this order
     // 1. delay in ms
@@ -240,7 +240,7 @@ export class Packet {
     tempBuffer.fill(
       0,
       this.signaturePosition,
-      this.signaturePosition + this.signature.length
+      this.signaturePosition + this.signature.length,
     );
     if (this.nacks.length === 8 && this.sync) {
       if (!myDestination) {
@@ -334,7 +334,7 @@ export class I2CPSocket extends Duplex {
     session: I2CPSession,
     remoteDestination: Destination,
     localDestination: LocalDestination,
-    initiator: boolean = false
+    initiator: boolean = false,
   ) {
     super({ objectMode: false });
     this.session = session;
@@ -365,7 +365,7 @@ export class I2CPSocket extends Duplex {
   public _write(
     chunk: Buffer,
     encoding: string,
-    callback: (error?: Error) => void
+    callback: (error?: Error) => void,
   ) {
     if (this.closeSent) {
       console.log("already sent close packet");
@@ -490,7 +490,7 @@ export class I2CPSocket extends Duplex {
 
   _destroy(
     error: Error | null,
-    callback: (error?: Error | null) => void
+    callback: (error?: Error | null) => void,
   ): void {
     if (this.destroyCalled) {
     } else {
@@ -547,14 +547,14 @@ export class I2CPSocket extends Duplex {
       console.log(
         "unexpected ack packet",
         ackPacket.ackThrough,
-        this.ackThrough
+        this.ackThrough,
       );
     }
     this.session.sendStreamDatagram(
       this.remoteDestination.buffer,
       0,
       0,
-      ackPacketBuffer
+      ackPacketBuffer,
     );
   }
 
@@ -563,7 +563,7 @@ export class I2CPSocket extends Duplex {
    * Also handles resending the packet if it doesn't get acked.
    */
   private createAckable = (
-    callback: (error?: Error) => void
+    callback: (error?: Error) => void,
   ): [number, (buff: Buffer) => void] => {
     // assign THEN increment the sequence number
     let sequenceNum = this.ourSequenceNum++;
@@ -578,7 +578,7 @@ export class I2CPSocket extends Duplex {
           this.remoteDestination.buffer,
           0,
           0,
-          packetBuffer
+          packetBuffer,
         );
         this.sentPackets[sequenceNum] = [
           new Packet(packetBuffer),
@@ -596,7 +596,7 @@ export class I2CPSocket extends Duplex {
                   this.streamId
                 } - giving up on remote ${sequenceNum} after ${
                   Date.now() - this.sentPackets[sequenceNum][1]
-                }ms`
+                }ms`,
               );
               clearInterval(timer);
               this.destroy(new Error("Packet resend failed"));
@@ -605,7 +605,7 @@ export class I2CPSocket extends Duplex {
               this.remoteDestination.buffer,
               0,
               0,
-              packetBuffer
+              packetBuffer,
             );
           } else {
             clearInterval(timer);

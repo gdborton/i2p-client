@@ -1,5 +1,8 @@
 import { describe, test, expect } from "vitest";
-import { bigIntFromBuff, bigIntToBuffer } from "./conversion-utils";
+import {
+  bigIntFromBuff,
+  bigIntToBuffer,
+} from "../../../src/utils/conversion-utils";
 
 describe("conversion-utils", () => {
   test("bigint functions", () => {

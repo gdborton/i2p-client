@@ -1,8 +1,8 @@
 {
   "name": "i2cp",
   "scripts": {
-    "build": "rm -rf dist; tsc",
-    "dev": "tsc --watch",
+    "build": "rm -rf dist; tsc -p tsconfig.build.json",
+    "dev": "tsc --watch -p tsconfig.build.json",
     "test": "vitest --run",
     "tsc": "tsc --noEmit"
   },
@@ -13,8 +13,8 @@
       "require": "./dist/i2cp.js"
     },
     "./utils": {
-      "import": "./dist/utils.js",
-      "require": "./dist/utils.js"
+      "import": "./dist/utils/utils.js",
+      "require": "./dist/utils/utils.js"
     },
     "./sam": {
       "import": "./dist/sam.js",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@diva.exchange/i2p-sam": "^5.4.1",
-    "@noble/curves": "^1.8.1",
+    "@noble/curves": "1.8.1",
     "@noble/ed25519": "^2.2.3",
     "@noble/hashes": "^1.7.1",
     "big-integer": "^1.6.52",
