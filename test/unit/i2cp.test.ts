@@ -1,7 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { Destination } from "../../src/Destination";
 import { unpackPayload } from "../../src/i2cp";
-import { stringDestinationToBuffer } from "../../src/utils/utils.js";
 
 describe("i2cp", () => {
   describe("unpack payload", () => {
@@ -12,18 +11,6 @@ describe("i2cp", () => {
       );
       const { from } = await unpackPayload(payload);
       expect(from instanceof Destination).toBeTruthy();
-      // expect(from?.byteLength).toBe(payload.byteLength);
-    });
-  });
-
-  describe("pack payload", () => {
-    test("stuff", () => {
-      const d = new Destination(
-        stringDestinationToBuffer(
-          // "I5k3l5E9hKSoMgu3UHzZt8Y6DMckA4GAKounatYAaLwjmTeXkT2EpKgyC7dQfNm3xjoMxyQDgYAqi6dq1gBovCOZN5eRPYSkqDILt1B82bfGOgzHJAOBgCqLp2rWAGi8I5k3l5E9hKSoMgu3UHzZt8Y6DMckA4GAKounatYAaLwjmTeXkT2EpKgyC7dQfNm3xjoMxyQDgYAqi6dq1gBovCOZN5eRPYSkqDILt1B82bfGOgzHJAOBgCqLp2rWAGi8I5k3l5E9hKSoMgu3UHzZt8Y6DMckA4GAKounatYAaLwjmTeXkT2EpKgyC7dQfNm3xjoMxyQDgYAqi6dq1gBovCOZN5eRPYSkqDILt1B82bfGOgzHJAOBgCqLp2rWAGi8I5k3l5E9hKSoMgu3UHzZt8Y6DMckA4GAKounatYAaLwjmTeXkT2EpKgyC7dQfNm3xjoMxyQDgYAqi6dq1gBovGo5L82hzGJXSq3pLapfqzLpnhvF-KmKvdpuhtzVY0jfBQAEAAcAANIe4xJNJB-0Sio7KB43i9ZGVRK2I3pJmg2O7bDTMoIpqcoZH~ZvAHEvJuaMmJ72WRJhwo4jeFWJP1rVzpv~VySQy0tza~wkySNyA8Gu80Wjp2Wq2L2w~FTI4hw~iNMQCyOxaSx01G9JZUwB4epu392MXuJw1UinzMAPm7En54av~LPNY0QkFMtyvAXZBbZzeXZ~JrtxRUnrdz4zrEXF5w7jndrXuSRJf3lp0MOWaHneGLDZpRr1yr6Fh3RL7VXwYB7D3sKp2ugEUmu3d99YPe6OlwckLqzzEqnnvnG1VA23sv3kZRCsjSUFFZc3YXXqXgsMMMkWpMGp0z27zFGNehlPlz-eXTuwxhhjwaGc7lsWrnXUSlzDQvAi-IYtek1h-w==",
-          "FZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhBWV4oZn6TSdNqbcqE7JSD2jn1hcgXa-8Me4cwT8ZSGEFZXihmfpNJ02ptyoTslIPaOfWFyBdr7wx7hzBPxlIYQVleKGZ-k0nTam3KhOyUg9o59YXIF2vvDHuHME~GUhhI~Tgvro2isW1Os3c7fwHUqk7tU7i6yd5yZkCYaOIlKlBQAEAAcAAA==",
-        ),
-      );
     });
   });
 });
