@@ -3,7 +3,7 @@ import { promisify } from "node:util";
 import { EventEmitter } from "events";
 import { gzip as gzipCallback } from "node:zlib";
 
-import LRU from "lru";
+import LRU from "quick-lru";
 import TypedEmitter from "typed-emitter";
 import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
 
@@ -195,9 +195,7 @@ type PortEvents = {
   nonRepliableMessage: (sourcePort: number, payload: Buffer) => void;
 };
 
-const lookupCache: LRU<Buffer> = new LRU({
-  max: 1000,
-});
+const lookupCache: LRU<string, Buffer> = new LRU({ maxSize: 1000 });
 
 export class I2CPPort extends (EventEmitter as new () => TypedEmitter<PortEvents>) {
   public portNumber: number;

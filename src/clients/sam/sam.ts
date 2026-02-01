@@ -11,6 +11,7 @@ import {
 } from "../../utils/utils.js";
 import { Destination } from "../../protocol/Destination.js";
 import { parseMessage, SamReplies } from "./sam-utils.js";
+import QuickLRU from "quick-lru";
 
 /**
  * Add base64 padding if missing.
@@ -79,7 +80,9 @@ process.on("SIGQUIT", cleanup); // Keyboard quit
 process.on("SIGTERM", cleanup); // `kill` command
 process.on("exit", cleanup);
 
-const cachedLookups = new Map<string, string>();
+const cachedLookups = new QuickLRU<string, string>({
+  maxSize: 1000,
+});
 
 abstract class BaseSamSocket extends EventEmitter {
   protected hasStream = false;
