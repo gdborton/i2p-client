@@ -8,10 +8,9 @@ import TypedEmitter from "typed-emitter";
 import {
   b64stringToB32String,
   stringDestinationToBuffer,
-} from "./utils/utils.js";
-import { Destination } from "./Destination.js";
-import { parseMessage, SamReplies } from "./utils/sam-utils.js";
-import { R } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
+} from "../../utils/utils.js";
+import { Destination } from "../../protocol/Destination.js";
+import { parseMessage, SamReplies } from "./sam-utils.js";
 
 /**
  * Add base64 padding if missing.
@@ -753,87 +752,82 @@ export class PrimarySession {
     return this.controlSocket.performNameLookup(name);
   }
 }
+/**
+ * Generate a new I2P destination via SAM bridge.
+ * Creates a temporary connection to generate keys and immediately closes it.
+ */
+export const generateDestination = async (
+  options: {
+    host?: string;
+    port?: number;
+  } = {},
+): Promise<DestinationConfig> => {
+  const { host = "127.0.0.1", port = 7656 } = options;
 
-export class SAM extends EventEmitter {
-  /**
-   * Generate a new I2P destination via SAM bridge.
-   * Creates a temporary connection to generate keys and immediately closes it.
-   */
-  static generateDestination(
-    options: {
-      host?: string;
-      port?: number;
-    } = {},
-  ): Promise<DestinationConfig> {
-    const { host = "127.0.0.1", port = 7656 } = options;
+  return new Promise((resolve, reject) => {
+    const socket = new Socket();
+    let helloDone = false;
 
-    return new Promise((resolve, reject) => {
-      const socket = new Socket();
-      let helloDone = false;
+    const cleanup = () => {
+      socket.removeAllListeners();
+      socket.destroy();
+    };
 
-      const cleanup = () => {
-        socket.removeAllListeners();
-        socket.destroy();
-      };
-
-      socket.on("error", (err) => {
-        cleanup();
-        reject(err);
-      });
-
-      socket.on("close", () => {
-        if (!helloDone) {
-          reject(
-            new Error("Connection closed before destination was generated"),
-          );
-        }
-      });
-
-      socket.pipe(split2()).on("data", (data: Buffer) => {
-        const message = data.toString().trim();
-        const firstSpaceIndex = message.indexOf(" ");
-        const secondSpaceIndex = message.indexOf(" ", firstSpaceIndex + 1);
-        const type = message.substring(0, secondSpaceIndex);
-
-        if (type === "HELLO REPLY") {
-          // Parse RESULT
-          if (message.includes("RESULT=OK")) {
-            helloDone = true;
-            socket.write("DEST GENERATE SIGNATURE_TYPE=7\n");
-          } else {
-            cleanup();
-            reject(new Error(`SAM handshake failed: ${message}`));
-          }
-        } else if (type === "DEST REPLY") {
-          // Parse PUB and PRIV from the message
-          const pubMatch = message.match(/PUB=([^\s]+)/);
-          const privMatch = message.match(/PRIV=([^\s]+)/);
-
-          if (pubMatch && privMatch) {
-            const publicKey = pubMatch[1];
-            const privateKey = privMatch[1];
-            const address = `${b64stringToB32String(publicKey)}.b32.i2p`;
-            const signingPrivateKey = extractSigningPrivateKey(
-              publicKey,
-              privateKey,
-            );
-            cleanup();
-            resolve({
-              address,
-              public: publicKey,
-              private: privateKey,
-              signingPrivateKey,
-            });
-          } else {
-            cleanup();
-            reject(new Error(`Failed to parse destination reply: ${message}`));
-          }
-        }
-      });
-
-      socket.connect(port, host, () => {
-        socket.write("HELLO VERSION MIN=3.0 MAX=3.3\n");
-      });
+    socket.on("error", (err) => {
+      cleanup();
+      reject(err);
     });
-  }
-}
+
+    socket.on("close", () => {
+      if (!helloDone) {
+        reject(new Error("Connection closed before destination was generated"));
+      }
+    });
+
+    socket.pipe(split2()).on("data", (data: Buffer) => {
+      const message = data.toString().trim();
+      const firstSpaceIndex = message.indexOf(" ");
+      const secondSpaceIndex = message.indexOf(" ", firstSpaceIndex + 1);
+      const type = message.substring(0, secondSpaceIndex);
+
+      if (type === "HELLO REPLY") {
+        // Parse RESULT
+        if (message.includes("RESULT=OK")) {
+          helloDone = true;
+          socket.write("DEST GENERATE SIGNATURE_TYPE=7\n");
+        } else {
+          cleanup();
+          reject(new Error(`SAM handshake failed: ${message}`));
+        }
+      } else if (type === "DEST REPLY") {
+        // Parse PUB and PRIV from the message
+        const pubMatch = message.match(/PUB=([^\s]+)/);
+        const privMatch = message.match(/PRIV=([^\s]+)/);
+
+        if (pubMatch && privMatch) {
+          const publicKey = pubMatch[1];
+          const privateKey = privMatch[1];
+          const address = `${b64stringToB32String(publicKey)}.b32.i2p`;
+          const signingPrivateKey = extractSigningPrivateKey(
+            publicKey,
+            privateKey,
+          );
+          cleanup();
+          resolve({
+            address,
+            public: publicKey,
+            private: privateKey,
+            signingPrivateKey,
+          });
+        } else {
+          cleanup();
+          reject(new Error(`Failed to parse destination reply: ${message}`));
+        }
+      }
+    });
+
+    socket.connect(port, host, () => {
+      socket.write("HELLO VERSION MIN=3.0 MAX=3.3\n");
+    });
+  });
+};

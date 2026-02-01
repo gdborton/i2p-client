@@ -1,28 +1,36 @@
 import { Socket } from "net";
 import { promisify } from "node:util";
 import { EventEmitter } from "events";
-import { gzip as gzipCallback, gunzip as gunzipCallback } from "node:zlib";
+import { gzip as gzipCallback } from "node:zlib";
 
 import LRU from "lru";
 import TypedEmitter from "typed-emitter";
 import { generateKeyPair as generateX25519KeyPair } from "ecies-25519";
 
-import { generatePrivateKeyPair as genEgamlKeyPair } from "./crypto/elgamal.js";
-import { stringDestinationToBuffer } from "./utils/utils.js";
+import { generatePrivateKeyPair as genEgamlKeyPair } from "../../crypto/elgamal.js";
+import { stringDestinationToBuffer } from "../../utils/utils.js";
 import {
   Destination,
   generateLocalDestination,
   LocalDestination,
   SIGNING_PUBLIC_KEY_TYPE,
-} from "./Destination.js";
+} from "../../protocol/Destination.js";
 import { I2CPSocket, Packet } from "./I2CPSocket.js";
-import { oneByteInteger, twoByteInteger } from "./utils/byte-utils.js";
-import { createDatagram1 } from "./Datagram1.js";
+import { oneByteInteger, twoByteInteger } from "../../utils/byte-utils.js";
+import { createDatagram1 } from "../../protocol/Datagram1.js";
+import {
+  I2P_PROTOCOL,
+  MESSAGE_ID_BYTE_LENGTH,
+  MESSAGE_SIZE_BYTE_LENGTH,
+  MESSAGE_STATUS_BYTE_LENGTH,
+  NONCE_BYTE_LENGTH,
+  SESSION_ID_BYTE_LENGTH,
+  unpackMessagePayloadMessage,
+} from "./i2cp-utils.js";
 
-export { bufferDestinationToString } from "./utils/utils.js";
+export { bufferDestinationToString } from "../../utils/utils.js";
 
 const gzip = promisify(gzipCallback);
-const gunzip = promisify(gunzipCallback);
 
 const I2CP_PROTOCOL_VERSION_BYTE = Buffer.from([0x2a]);
 const I2CP_VERSION = "0.9.65";
@@ -415,12 +423,6 @@ const convertLease1sToLease2s = (count: number, leases: Buffer): Buffer => {
   return newBuff;
 };
 
-enum I2P_PROTOCOL {
-  STREAMING = 6,
-  REPLIABLE_DATAGRAM = 17,
-  RAW_DATAGRAM = 18,
-}
-
 /**
  * Returns a usable payload for the SendMessageMessage.
  * Final Buffer looks like this:
@@ -443,50 +445,6 @@ const createPayload = async (
     workedPayloadBuffer,
   ]);
   return packedPayload;
-};
-
-export const unpackPayload = async (
-  data: Buffer,
-): Promise<{
-  payload: Buffer;
-  sourcePort: number;
-  destinationPort: number;
-  from?: Destination;
-  signature?: Buffer;
-  protocol: I2P_PROTOCOL;
-}> => {
-  const payloadData = data.subarray(4);
-  const sourcePort = payloadData.readUInt16BE(4);
-  const destinationPort = payloadData.readUInt16BE(6);
-  const protocol = payloadData.readUInt8(9);
-  const originalPayload = await gunzip(payloadData);
-  if (protocol === I2P_PROTOCOL.REPLIABLE_DATAGRAM) {
-    const des = new Destination(originalPayload);
-    const signature = originalPayload.subarray(
-      des.byteLength,
-      des.byteLength + des.signatureByteLength,
-    );
-    const payloadStart = des.byteLength + signature.byteLength;
-    const payload = originalPayload.subarray(payloadStart);
-    const verified = des.verifyPayload(payload, signature);
-    if (!verified) {
-      throw new Error("unable to verify payload!");
-    }
-    return {
-      payload,
-      sourcePort,
-      destinationPort,
-      protocol,
-      from: des,
-      signature,
-    };
-  }
-  return {
-    payload: originalPayload,
-    sourcePort,
-    destinationPort,
-    protocol,
-  };
 };
 
 enum MESSAGE_STATUS {
@@ -526,12 +484,6 @@ enum HOST_REPLY_STATUS {
   LEASESET_LOOKUP_FAILURE = 6,
   LOOKUP_TYPE_UNSUPPORTED = 7,
 }
-
-const SESSION_ID_BYTE_LENGTH = 2;
-const MESSAGE_ID_BYTE_LENGTH = 4;
-const MESSAGE_STATUS_BYTE_LENGTH = 1;
-const MESSAGE_SIZE_BYTE_LENGTH = 4;
-const NONCE_BYTE_LENGTH = 4;
 
 // just here for debugging help
 let messagesSent = 0;
@@ -932,11 +884,8 @@ export class I2CPSession extends (EventEmitter as new () => TypedEmitter<Events>
   };
 
   private handleMessagePayloadMessage = async (data: Buffer) => {
-    const payloadBuffer = data.subarray(
-      SESSION_ID_BYTE_LENGTH + MESSAGE_ID_BYTE_LENGTH,
-    );
     const { payload, sourcePort, destinationPort, protocol, from } =
-      await unpackPayload(payloadBuffer);
+      await unpackMessagePayloadMessage(data);
     if (protocol === I2P_PROTOCOL.STREAMING) {
       const packet = new Packet(payload);
       const stream =

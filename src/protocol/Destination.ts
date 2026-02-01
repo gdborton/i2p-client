@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from "crypto";
-import { generatePrivateKeyPair, verify, sign } from "./crypto/dsa.js";
+import { generatePrivateKeyPair, verify, sign } from "../crypto/dsa.js";
 
 import {
   verify as verifyED25519,
@@ -14,13 +14,13 @@ import {
   b64stringToB32String,
   bufferDestinationToString,
   stringDestinationToBuffer,
-} from "./utils/utils.js";
-import { RedDSA } from "./crypto/RedDSA.js";
+} from "../utils/utils.js";
+import { RedDSA } from "../crypto/RedDSA.js";
 import {
   bigIntFromBuff,
   bigIntFromHex,
   bigIntToBuffer,
-} from "./utils/conversion-utils.js";
+} from "../utils/conversion-utils.js";
 
 export enum DESTINATION_CERT_TYPE {
   NULL = 0,

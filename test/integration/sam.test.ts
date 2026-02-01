@@ -1,48 +1,12 @@
-import net from "net";
-import dgram from "dgram";
 import { describe, it, beforeAll, expect } from "vitest";
 import {
-  SAM,
+  generateDestination,
   StreamAcceptSocket,
   type RepliableDatagramEvent,
-} from "../../src/sam";
+} from "../../src/clients/sam/sam";
+import { isTcpPortOpen, isUdpPortOpen } from "./test-utils";
 
 const WAIT_FOR_DATAGRAM_TIMEOUT = 5_000;
-
-// Helper to check if a TCP port is open
-async function isTcpPortOpen(port: number, host = "127.0.0.1") {
-  return new Promise<boolean>((resolve) => {
-    const socket = new net.Socket();
-    socket.setTimeout(1000);
-    socket.once("connect", () => {
-      socket.destroy();
-      resolve(true);
-    });
-    socket.once("timeout", () => {
-      socket.destroy();
-      resolve(false);
-    });
-    socket.once("error", () => {
-      resolve(false);
-    });
-    socket.connect(port, host);
-  });
-}
-
-// Helper to check if a UDP port is open (best effort)
-async function isUdpPortOpen(port: number, host = "127.0.0.1") {
-  return new Promise<boolean>((resolve) => {
-    const socket = dgram.createSocket("udp4");
-    socket.once("error", () => {
-      socket.close();
-      resolve(false);
-    });
-    socket.send(Buffer.from("test"), port, host, (err) => {
-      socket.close();
-      resolve(!err);
-    });
-  });
-}
 
 describe(
   "SAM",
@@ -68,17 +32,17 @@ describe(
     describe("SAM integration: repliable datagrams", () => {
       it("should establish two destinations and exchange repliable datagrams", async () => {
         // Generate destinations
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
         // Start primary sessions for each destination
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -168,16 +132,16 @@ describe(
 
     describe("SAM integration: raw datagrams", () => {
       it("should establish two destinations and exchange raw datagrams", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -249,16 +213,16 @@ describe(
 
     describe("SAM integration: streaming data between destinations", () => {
       it("should create two destinations and stream data to each other", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -355,16 +319,16 @@ describe(
       });
 
       it("should establish multiple streams to the same destination and send unique data", async () => {
-        const destA = await SAM.generateDestination({
+        const destA = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const destB = await SAM.generateDestination({
+        const destB = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primaryA = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -448,16 +412,16 @@ describe(
 
     describe("SAM integration: repliable datagrams port filtering", () => {
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -504,16 +468,16 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get messages sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -571,16 +535,16 @@ describe(
 
     describe("SAM integration: raw datagrams port filtering", () => {
       it("should listen on port 13 and NOT get messages sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -629,16 +593,16 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get messages sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -688,15 +652,15 @@ describe(
 
     describe("SAM integration: streaming data port filtering", () => {
       it("should listen on port 13 and NOT get connections sent to port 14", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,
@@ -742,16 +706,16 @@ describe(
       });
 
       it("should listen on port 13 and SHOULD get connections sent to port 13", async () => {
-        const dest1 = await SAM.generateDestination({
+        const dest1 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
-        const dest2 = await SAM.generateDestination({
+        const dest2 = await generateDestination({
           host: samHost,
           port: samTcpPort,
         });
 
-        const { PrimarySession } = await import("../../src/sam");
+        const { PrimarySession } = await import("../../src/clients/sam/sam");
         const primary1 = new PrimarySession({
           host: samHost,
           tcpPort: samTcpPort,

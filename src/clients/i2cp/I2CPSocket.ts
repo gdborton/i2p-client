@@ -1,13 +1,13 @@
 import { Duplex } from "stream";
 import { I2CPSession } from "./i2cp.js";
-import { Destination, LocalDestination } from "./Destination.js";
+import { Destination, LocalDestination } from "../../protocol/Destination.js";
 import {
   setBit,
   twoByteInteger,
   fourByteInteger,
   oneByteInteger,
   getBit,
-} from "./utils/byte-utils.js";
+} from "../../utils/byte-utils.js";
 
 const RESEND_DELAY_SECONDS = 3; // 3 seconds
 enum PacketType {
