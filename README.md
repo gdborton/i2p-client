@@ -85,6 +85,13 @@ const stream = await streamSession.createStream({
 streamSession.on("stream", (stream: Socket) => {
   stream.write("HI");
 });
+
+// creating a `fetch` function that works with i2p without a proxy
+import { createFetch } from "i2p-client/utils/fetch";
+
+const fetch = createFetch({ session: primarySession });
+
+fetch("someAddress.i2p");
 ```
 
 # I2CP

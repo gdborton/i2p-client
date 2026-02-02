@@ -159,50 +159,52 @@ abstract class BaseSamSocket extends EventEmitter {
     });
   }
 
-  protected parseReply(data: Buffer) {
-    const message = data.toString().trim();
-    const msg = parseMessage(message);
-    if (msg.type === SamReplies.REPLY_HELLO) {
-      if (msg.args.RESULT === "OK") {
-        this.internalEmitter.emit("hello");
-      } else {
-        this.emit("error", new Error(msg.args.MESSAGE));
-      }
-    } else if (msg.type === SamReplies.REPLY_STREAM) {
-      if (msg.args.RESULT === "OK") {
-        this.hasStream = true;
-        this.emit("stream");
-      } else {
-        this.emit(
-          "error",
-          new Error(`${SamReplies.REPLY_STREAM}: ${msg.args.RESULT}`),
+  protected parseReply(message: Buffer) {
+    const messages = message.toString().trim().split("\n");
+    for (const message of messages) {
+      const msg = parseMessage(message);
+      if (msg.type === SamReplies.REPLY_HELLO) {
+        if (msg.args.RESULT === "OK") {
+          this.internalEmitter.emit("hello");
+        } else {
+          this.emit("error", new Error(msg.args.MESSAGE));
+        }
+      } else if (msg.type === SamReplies.REPLY_STREAM) {
+        if (msg.args.RESULT === "OK") {
+          this.hasStream = true;
+          this.emit("stream");
+        } else {
+          this.emit(
+            "error",
+            new Error(`${SamReplies.REPLY_STREAM}: ${msg.args.RESULT}`),
+          );
+          // this.destroy();
+        }
+      } else if (msg.type === SamReplies.REPLY_SESSION) {
+        if (msg.args.RESULT === "OK") {
+          this.emit("session", msg.args.ID);
+        } else {
+          console.error("SESSION ERROR:", msg);
+        }
+      } else if (msg.type === SamReplies.REPLY_NAMING) {
+        if (msg.args.RESULT === "OK") {
+          this.emit("nameLookupResult", msg.args.VALUE);
+        } else {
+          this.emit("error", new Error(msg.args.MESSAGE));
+        }
+      } else if (msg.type === SamReplies.REPLY_QUIT) {
+        if (msg.args.RESULT === "OK") {
+          this.socket.destroy();
+        }
+      } else if (msg.type === SamReplies.PING) {
+        // Handle PING messages if needed
+        this.socket.write(
+          `PONG${msg.args.REMAINDER ? ` ${msg.args.REMAINDER}` : ""}\n`,
         );
-        // this.destroy();
-      }
-    } else if (msg.type === SamReplies.REPLY_SESSION) {
-      if (msg.args.RESULT === "OK") {
-        this.emit("session", msg.args.ID);
       } else {
-        console.error("SESSION ERROR:", msg);
+        console.log("raw message", message);
+        console.error("UNHANDLED SAM MESSAGE:", msg);
       }
-    } else if (msg.type === SamReplies.REPLY_NAMING) {
-      if (msg.args.RESULT === "OK") {
-        this.emit("nameLookupResult", msg.args.VALUE);
-      } else {
-        this.emit("error", new Error(msg.args.MESSAGE));
-      }
-    } else if (msg.type === SamReplies.REPLY_QUIT) {
-      if (msg.args.RESULT === "OK") {
-        this.socket.destroy();
-      }
-    } else if (msg.type === SamReplies.PING) {
-      // Handle PING messages if needed
-      this.socket.write(
-        `PONG${msg.args.REMAINDER ? ` ${msg.args.REMAINDER}` : ""}\n`,
-      );
-    } else {
-      console.log("raw message", message);
-      console.error("UNHANDLED SAM MESSAGE:", msg);
     }
   }
 
@@ -518,9 +520,9 @@ export class StreamSession extends (EventEmitter as new () => TypedEmitter<Strea
     destination: string;
     fromPort: number;
     toPort: number;
-  }): Promise<any> {
+  }): Promise<StreamSocket> {
     return new Promise((resolve, reject) => {
-      const socket = new (StreamSocket as any)({
+      const socket = new StreamSocket({
         host: this.host,
         port: this.port,
         fromPort,

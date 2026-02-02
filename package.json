@@ -26,6 +26,10 @@
       "import": "./dist/utils/utils.js",
       "require": "./dist/utils/utils.js"
     },
+    "./utils/fetch": {
+      "import": "./dist/utils/fetch.js",
+      "require": "./dist/utils/fetch.js"
+    },
     "./clients/i2cp": {
       "import": "./dist/clients/i2cp/i2cp.js",
       "require": "./dist/clients/i2cp/i2cp.js"
@@ -45,6 +49,7 @@
     "@noble/hashes": "^1.7.1",
     "big-integer": "^1.6.52",
     "ecies-25519": "^1.3.1",
+    "http-parser-js": "^0.5.10",
     "micro-rsa-dsa-dh": "^0.1.0",
     "quick-lru": "^7.3.0",
     "rfc4648": "^1.5.4",

@@ -39,5 +39,20 @@ describe("sam-utils", () => {
         },
       });
     });
+
+    it("should parse results ok", () => {
+      expect(
+        parseMessage(
+          `SESSION STATUS RESULT=OK ID="b2-torrent-STREAM-191040" MESSAGE="ADD b2-torrent-STREAM-191040"\n`,
+        ),
+      ).toEqual({
+        args: {
+          ID: "b2-torrent-STREAM-191040",
+          MESSAGE: "ADD b2-torrent-STREAM-191040",
+          RESULT: "OK",
+        },
+        type: "SESSION STATUS",
+      });
+    });
   });
 });

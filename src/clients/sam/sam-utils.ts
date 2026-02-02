@@ -122,7 +122,7 @@ export const parseMessage = <T extends SamReplies>(msg: string): Args[T] => {
       try {
         argsObj[key] = value.startsWith('"') ? JSON.parse(value) : value;
       } catch (e) {
-        console.error(`Error parsing value '${value}'`, e);
+        console.error(`Error parsing msg '${msg}'`, e);
         throw new Error("Error parsing value");
       }
     }
